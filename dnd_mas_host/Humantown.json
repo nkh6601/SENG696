@@ -1,0 +1,894 @@
+{
+  "story": {
+    "_id": "ObjectId()",
+    "name": "Humantown: Rescue from the Town of Slimes",
+    "stages": [
+      {
+        "stageId": "stage_01",
+        "name": "Arrival and Investigation"
+      },
+      {
+        "stageId": "stage_02", 
+        "name": "Museum of Human History"
+      },
+      {
+        "stageId": "stage_03",
+        "name": "The Mill - Final Confrontation"
+      }
+    ],
+    "startNarrative": "The Summer Expanse stretches before you like an ocean of golden grass. In your hand, you clutch Jaylen's note—his last message before he disappeared five days ago.\n\n\"Found something strange. A town that shouldn't exist. Not on any map. I'm going to investigate. If you don't hear from me in three days, follow the eastern road from Millbrook for 20 miles. You'll see the windmill first.\"\n\nThat was five days ago. Two days past his deadline.\n\nYou crest a small rise, and there it is. A wooden sign stands in the prairie: \"Welcome to Humantown.\" Beyond it, neat paddocks and simple buildings stretch toward a massive white windmill. Everything looks too new, too orderly—like a child's toy village.\n\nA farmer tending cattle notices you and turns with an unnaturally rigid motion. His smile is fixed, too wide, and doesn't waver as he raises his hand and waves.\n\n\"Hello there!\" his voice carries across the prairie, unnaturally cheerful. \"Isn't it wonderful to have hands? They can do so many things!\"\n\nHe walks toward you, his skin glistening with an odd moisture. That smile never changes—not even when he blinks.\n\nYour instincts scream that something is deeply wrong.\n\nBut Jaylen is somewhere in that town. And you're not leaving without him.",
+    "objective": "Rescue Jaylen from Alistair Porridgepot and uncover the dark secrets of Humantown, a settlement inhabited by semi-intelligent slime creatures mimicking human society.",
+    "outline": "Adventurers arrive in Humantown searching for their missing friend Jaylen. They must navigate interactions with creepy humanoid slimes (denizens) while investigating the town's buildings. Clues lead them to the Museum of Human History where they discover Alistair's horrific experiments. The adventure culminates in a combat gauntlet at the Mill where Alistair holds Jaylen captive above a vat of living slime.",
+    "mapDesc": "Humantown is a small settlement on the edge of The Summer Expanse prairie, surrounded by farms with cattle paddocks. The town center contains residential buildings, a tavern, jail, warehouse, and the Museum of Human History. A large windmill (the Mill) sits behind the town, surrounded by a 150ft square stone-walled garden. The settlement appeared within the last year and is not on any maps."
+  },
+  
+  "stages": [
+    {
+      "_id": "ObjectId(stage_01)",
+      "name": "Arrival and Investigation",
+      "envDesc": "A recently constructed town with boxy, simple buildings (1-3 rooms each) less than a year old. Farms with paddocks of slime-cattle surround the settlement. Buildings are mostly empty inside with minimal furniture. No commercial buildings exist except the tavern. The atmosphere is unnaturally orderly and eerily quiet.",
+      "venues": ["welcome_sign", "town_center", "tavern", "jail", "warehouse_of_rejects", "residential_buildings", "cattle_paddocks"],
+      "storyDesc": "Players arrive seeking Jaylen who went missing investigating this unmapped town. They must interact with the unsettling denizens - semi-intelligent slimes mimicking humans. Denizens provide clues about a traveler matching Jaylen's description being arrested and taken to jail. The tavern owner knows more but must be persuaded. Investigation reveals the town's unnatural origin. Players can work at farms, stay at tavern, or break into locations. If denizens feel threatened or players stay more than one day without explanation, Alistair sends forces to arrest them.",
+      "startVenue": "welcome_sign",
+      "startNarrative": "There are no paved roads that lead into the town. As you approach, you see a large sign: 'Welcome to Humantown'. Beyond it, farms stretch toward a small collection of buildings, with a large windmill visible behind the town. A farmer tending cattle notices you and waves enthusiastically with a fixed, unsettling smile."
+    },
+    
+    {
+      "_id": "ObjectId(stage_02)",
+      "name": "Museum of Human History",
+      "envDesc": "A three-story building with frosted glass windows. The top floor is a glass conservatory overgrown with wild plants breaking through windows. Front door is locked with a 'closed' sign. One side window (area A4) is broken and boarded up with torn fabric from Jaylen's clothing. The interior contains display rooms of Alistair's experiments: alchemical materials, taxidermied animals, flesh golems, dissected humanoids, and botanical horrors.",
+      "venues": ["museum_exterior", "reception_a1", "alchemist_display_a2", "black_pudding_room_a3", "taxidermy_room_a4", "first_creation_a5", "flesh_golem_room_b1", "dissection_rooms_b2", "garden_c1", "writing_desk_c2"],
+      "storyDesc": "Jaylen's notebook indicates he planned to investigate the Museum before his capture. This location reveals Alistair Porridgepot's identity and his experiments creating life from slime. Players find evidence of transmutation, necromancy, and conjuration experiments. Combat encounters include flesh golems, black puddings, The First Slime, and a shambling mound. The writing desk contains crucial information about Alistair moving his main laboratory to the Mill and a phrase book to control constructs.",
+      "startVenue": "museum_exterior",
+      "startNarrative": "The Museum of Human History looms before you, its three stories crowned by a glass conservatory where wild vegetation presses against cracked windows. The front door bears a faded 'closed' sign, and on one side, a boarded window shows a scrap of torn fabric that matches Jaylen's clothing."
+    },
+    
+    {
+      "_id": "ObjectId(stage_03)",
+      "name": "The Mill - Final Confrontation",
+      "envDesc": "An 80ft tall cylindrical white brick structure with a domed top, featuring a massive wind turbine with four 30ft sails. Surrounded by a 150ft square stone wall (10ft high) enclosing an alchemical garden with stone paths. The interior has a ground-floor workshop and a 60ft tall laboratory containing a 15ft diameter iron basin filled with churning yellow slime, stirred by turbine-powered mechanisms. Shelves line the walls with unstable magical materials.",
+      "venues": ["mill_garden_m1", "mill_exterior_m1", "workshop_m2", "laboratory_m3"],
+      "storyDesc": "The final confrontation location where Alistair Porridgepot conducts his slime-creation experiments. Jaylen is held captive, suspended above the massive slime vat. The garden has 12+ denizens tending plants, with guards at the gate and mill entrance. Permanent alarm spell on the main door. Combat gauntlet includes: Helmed Horror guard, 3 denizen assistants, 3 ochre jellies in barrels, 6 workshop denizens, and waves of garden denizens (1d4 every 2 rounds, max 8). Alistair fights using area spells, summons, and threats against Jaylen. Unstable shelves can explode (d20 roll, 10+ triggers arcane explosion). Victory requires defeating Alistair and rescuing Jaylen.",
+      "startVenue": "mill_garden_m1",
+      "startNarrative": "The grinding of metal echoes from the massive windmill ahead. Through the stone-walled garden, you see denizens tending alchemical plants with unsettling precision. Two guards stand at the gate, their fixed smiles never wavering. Beyond them, the white brick mill towers 80 feet high, its turbine sails turning slowly in the wind. Somewhere inside, Jaylen awaits rescue - if he still lives."
+    }
+  ],
+  
+  "venues": [
+    {
+      "_id": "ObjectId()",
+      "name": "Welcome Sign",
+      "envDesc": "A large wooden sign reading 'Welcome to Humantown' erected on the prairie's edge. Farms with paddocks of cattle stretch beyond toward the town center. The windmill is visible in the distance.",
+      "NPCs": ["humantown_farmer"],
+      "connectVenues": ["town_center", "cattle_paddocks"],
+      "storyDesc": "First encounter location. A farmer will immediately notice and wave at adventurers, beginning their first unsettling interaction with the denizens.",
+      "actions": [
+        {
+          "name": "Observe Town",
+          "type": "perception",
+          "dc": 10,
+          "description": "Survey the layout of Humantown and notice its unnatural orderliness"
+        },
+        {
+          "name": "Interact with Farmer",
+          "type": "social",
+          "description": "First encounter with a Humantown denizen's creepy behavior"
+        }
+      ]
+    },
+    
+    {
+      "_id": "ObjectId()",
+      "name": "The Tavern",
+      "envDesc": "A meticulously ordered establishment with perfectly spaced tables (four seats each) and bar stools. Shelves have glassware arranged by size. Usually half full with denizens having idle conversations or randomly shuffling cards. Contains dining space (T1), kitchen/storage (T2) with sparse rotting vegetables, empty stables (T3) with mildewed hay, an adventurer's room (T4) with one bed regardless of party size, guest rooms (T5) with previous travelers' belongings laid out neatly, Jaylen's room (T6), and a meticulously clean bathroom (T7).",
+      "NPCs": ["tavern_owner", "tavern_denizens"],
+      "connectVenues": ["town_center", "jail"],
+      "storyDesc": "Central social hub. Tavern owner knows Jaylen was arrested for 'breaking a law' and taken to jail but will feign ignorance initially. Jaylen's room (T6) contains his notebook with the last entry mentioning plans to investigate the Museum. Guest rooms contain belongings of deceased travelers including 6 iron bars, 2 shortswords, fine fur coat, and 25 GP in coins. Tavern owner carries jail keys.",
+      "actions": [
+        {
+          "name": "Question Tavern Owner",
+          "type": "persuasion/intimidation",
+          "dc": "variable",
+          "description": "Extract information about Jaylen's arrest and location"
+        },
+        {
+          "name": "Investigate Jaylen's Room",
+          "type": "investigation",
+          "description": "Find Jaylen's notebook with clues about the Museum"
+        },
+        {
+          "name": "Search Guest Rooms",
+          "type": "investigation",
+          "description": "Discover belongings of previous victims (alerts tavern workers if caught)"
+        },
+        {
+          "name": "Rest for Night",
+          "type": "rest",
+          "description": "Stay overnight in the single-bed room"
+        }
+      ]
+    },
+    
+    {
+      "_id": "ObjectId()",
+      "name": "Jail",
+      "envDesc": "A simple 20ft x 20ft cube building containing two 10ft x 10ft metal cages in the center. Sparse and utilitarian.",
+      "NPCs": [],
+      "connectVenues": ["town_center", "tavern"],
+      "storyDesc": "Where captured adventurers are held. Tavern owner has the keys. Prisoners are left unguarded and denizens forget about them. If Jaylen were still here, he has been moved to the Mill.",
+      "actions": [
+        {
+          "name": "Pick Lock",
+          "type": "thieves_tools",
+          "dc": 15,
+          "description": "Unlock the metal cages"
+        },
+        {
+          "name": "Steal Keys",
+          "type": "sleight_of_hand",
+          "description": "Take keys from tavern owner"
+        }
+      ]
+    },
+    
+    {
+      "_id": "ObjectId()",
+      "name": "Warehouse of Rejects",
+      "envDesc": "A two-story warehouse filled with loose boxes, barrels, and broken furniture. Contains Alistair's failed experiments: warped semi-formed denizens (half humanoid, half slime) without shapechanging abilities. Many are stuffed in barrels or containers they cannot escape. Generally non-hostile but will attack if threatened. Dense and cluttered interior.",
+      "NPCs": ["reject_denizens", "ochre_jelly_amalgamation"],
+      "connectVenues": ["town_center"],
+      "storyDesc": "Storage for Alistair's failures. Locked entrance. If adventurers break in or fight inside, denizens become upset. Combat encounter: 1d4+1 Humantown denizens and one ochre jelly (amalgamation of multiple denizens).",
+      "actions": [
+        {
+          "name": "Lockpick Door",
+          "type": "thieves_tools",
+          "dc": 15,
+          "description": "Unlock the warehouse entrance"
+        },
+        {
+          "name": "Listen at Door",
+          "type": "perception",
+          "dc": 15,
+          "description": "Hear rejects shuffling inside before entering"
+        },
+        {
+          "name": "Navigate Warehouse",
+          "type": "investigation",
+          "description": "Search through failed experiments (may trigger combat if threatening)"
+        }
+      ]
+    },
+    
+    {
+      "_id": "ObjectId()",
+      "name": "Cattle Paddocks",
+      "envDesc": "Over a dozen paddocks surrounding the town filled with Cow Slimes - Alistair's creations that resemble cattle but smell sickly sweet and are sticky to touch. They moo without throat/mouth movement.",
+      "NPCs": ["cow_slimes"],
+      "connectVenues": ["welcome_sign", "town_center"],
+      "storyDesc": "Players can volunteer to work here to avoid suspicion. Animal Handling DC 12 required during work. On failure, 1d4 cows attack.",
+      "actions": [
+        {
+          "name": "Volunteer for Work",
+          "type": "social",
+          "description": "Offer to tend cattle to blend in with town"
+        },
+        {
+          "name": "Handle Cattle",
+          "type": "animal_handling",
+          "dc": 12,
+          "description": "Keep cows under control (failure: 1d4 cows attack)"
+        }
+      ]
+    },
+    
+    {
+      "_id": "ObjectId()",
+      "name": "Museum Exterior",
+      "envDesc": "Three-story building with frosted glass windows making interior invisible. Top floor is a glass conservatory with wild plants pressing against windows and breaking through roof panes. Front door locked with 'closed' sign. Faded sign: 'Museum of Human History'. One broken, boarded window on side (area A4) with torn fabric from Jaylen's clothing.",
+      "NPCs": [],
+      "connectVenues": ["town_center", "reception_a1", "taxidermy_room_a4"],
+      "storyDesc": "Entry point to Stage 2. Evidence of Jaylen's forced entry. No back door. Main entrance requires lockpicking DC 15 or players can enter through broken window.",
+      "actions": [
+        {
+          "name": "Examine Window",
+          "type": "perception",
+          "dc": 10,
+          "description": "Notice broken window with Jaylen's torn clothing"
+        },
+        {
+          "name": "Lockpick Front Door",
+          "type": "thieves_tools",
+          "dc": 15,
+          "description": "Unlock main entrance"
+        },
+        {
+          "name": "Enter Through Window",
+          "type": "athletics/acrobatics",
+          "description": "Climb through broken window to A4"
+        }
+      ]
+    },
+    
+    {
+      "_id": "ObjectId()",
+      "name": "Reception (A1)",
+      "envDesc": "Single desk without chair in room center. Drawers smell of new wood and contain no paperwork or equipment - never used. Back wall has multiple framed rejection letters from magical universities.",
+      "NPCs": [],
+      "connectVenues": ["museum_exterior", "alchemist_display_a2"],
+      "storyDesc": "Alistair's rejection letters establish his motivation. Empty desk shows the museum was never properly operational.",
+      "actions": [
+        {
+          "name": "Examine Desk",
+          "type": "investigation",
+          "description": "Discover unused drawers and rejection letters"
+        },
+        {
+          "name": "Read Rejection Letters",
+          "type": "investigation",
+          "description": "Learn about Alistair's dismissal by magical academies"
+        }
+      ]
+    },
+    
+    {
+      "_id": "ObjectId()",
+      "name": "Alchemist's Display (A2)",
+      "envDesc": "Over a dozen glass display cabinets along walls. Each contains small pieces of material or ore floating under permanent levitation spells: crystal veins, metal ores, magically glowing stones. Small quantities and impure samples - not valuable enough to sell individually.",
+      "NPCs": [],
+      "connectVenues": ["reception_a1", "black_pudding_room_a3"],
+      "storyDesc": "Contains piece of Coruscite (magical material) identifiable with DC 15 Arcana check. Shows Alistair's alchemical expertise.",
+      "actions": [
+        {
+          "name": "Identify Materials",
+          "type": "arcana",
+          "dc": 15,
+          "description": "Recognize Coruscite among displayed materials"
+        },
+        {
+          "name": "Collect Coruscite",
+          "type": "interaction",
+          "description": "Take the valuable Coruscite sample"
+        }
+      ]
+    },
+    
+    {
+      "_id": "ObjectId()",
+      "name": "Black Pudding Room (A3)",
+      "envDesc": "Empty room with slightly raised platform in center. Platform holds 3 large copper alloy pots (5ft tall, 3ft diameter). Pots contain remains of starved black puddings releasing gag-inducing sweet smell when opened.",
+      "NPCs": ["black_pudding_optional"],
+      "connectVenues": ["alchemist_display_a2", "taxidermy_room_a4"],
+      "storyDesc": "Shows Alistair's ooze experiments. Dead black puddings unless DM wants one alive for higher-level parties.",
+      "actions": [
+        {
+          "name": "Open Pots",
+          "type": "interaction",
+          "description": "Release sweet smell, possibly encounter living black pudding"
+        }
+      ]
+    },
+    
+    {
+      "_id": "ObjectId()",
+      "name": "Taxidermy Room (A4)",
+      "envDesc": "Hundreds of stuffed animals hanging from ceiling (sparrows to foxes). Each directly above a small plinth with journal. Books contain meticulous behavioral notes and experiment records. Notes randomly switch between Halfling and Common, hard to follow.",
+      "NPCs": [],
+      "connectVenues": ["museum_exterior", "black_pudding_room_a3", "first_creation_a5"],
+      "storyDesc": "Entry point through broken window. Reveals Alistair's early animal experiments. Multilingual notes show his deteriorating mental state.",
+      "actions": [
+        {
+          "name": "Read Journals",
+          "type": "investigation",
+          "description": "Study Alistair's animal experimentation notes"
+        },
+        {
+          "name": "Translate Notes",
+          "type": "language",
+          "description": "Understand Halfling portions of journals"
+        }
+      ]
+    },
+    
+    {
+      "_id": "ObjectId()",
+      "name": "The First Creation (A5)",
+      "envDesc": "Huge rounded glass canister (7ft diameter) positioned in exact center of room. Contains roiling mass of yellow slime. Soft murmurings emanate from glass. Distorted faces emerge and disappear in yellow flesh folds.",
+      "NPCs": ["the_first_slime"],
+      "connectVenues": ["taxidermy_room_a4", "flesh_golem_room_b1"],
+      "storyDesc": "Alistair's first semi-successful creation - a massive slime with partial consciousness. Attacks immediately if glass is broken. Major combat encounter.",
+      "actions": [
+        {
+          "name": "Observe Entity",
+          "type": "investigation",
+          "description": "Watch faces form in the slime mass"
+        },
+        {
+          "name": "Break Glass",
+          "type": "combat_trigger",
+          "description": "Release The First Slime (initiates combat)"
+        }
+      ]
+    },
+    
+    {
+      "_id": "ObjectId()",
+      "name": "Flesh Golem Room (B1)",
+      "envDesc": "Seven large humanoid forms (Flesh Golems) standing frozen at random points throughout room. All deceased except one living golem. Dark room.",
+      "NPCs": ["flesh_golem_living"],
+      "connectVenues": ["first_creation_a5", "dissection_rooms_b2"],
+      "storyDesc": "Major combat encounter. Living golem attacks immediately if players enter with light. Without light: DC 20 Perception or DC 15 Medicine to notice breathing, otherwise surprise round. Shows Alistair's necromantic phase.",
+      "actions": [
+        {
+          "name": "Detect Living Golem",
+          "type": "perception/medicine",
+          "dc": "20/15",
+          "description": "Notice one golem breathing before it attacks"
+        },
+        {
+          "name": "Combat Encounter",
+          "type": "combat",
+          "description": "Fight living Flesh Golem"
+        }
+      ]
+    },
+    
+    {
+      "_id": "ObjectId()",
+      "name": "Dissection Rooms (B2)",
+      "envDesc": "Four rooms each containing a horrifically dissected humanoid (3 humans, 1 dwarf) suspended or displayed. Each dissection performed differently: chest opened frog-style, organs cubed, skin/muscles stripped into layers with bones laid out. Vinegar preservative smell. Dead-eyed stares. Each has plaque with experiment number.",
+      "NPCs": [],
+      "connectVenues": ["flesh_golem_room_b1", "garden_c1"],
+      "storyDesc": "Reveals Alistair's human experimentation phase. Extremely gory - DM can replace with Frankenstein-style experiments or omit entirely for younger players. Shows descent into madness.",
+      "actions": [
+        {
+          "name": "Examine Bodies",
+          "type": "investigation/medicine",
+          "description": "Study dissection techniques and experiment numbers"
+        },
+        {
+          "name": "Read Plaques",
+          "type": "investigation",
+          "description": "Note experiment sequence and methods"
+        }
+      ]
+    },
+    
+    {
+      "_id": "ObjectId()",
+      "name": "The Garden (C1)",
+      "envDesc": "Top floor conservatory covered in large overgrown garden. Bushes and small trees originally in troughs/pots but roots broke through ceramics and snake across floor. Tree branches weave into shaded canopy. Very dense - visibility only 5ft, difficult terrain (except for shambling mound).",
+      "NPCs": ["shambling_mound", "vine_blights_optional"],
+      "connectVenues": ["dissection_rooms_b2", "writing_desk_c2"],
+      "storyDesc": "Shambling mound (accidental botanical experiment product) lurks here. Makes contested Stealth vs Perception to ambush if players stay too long. Won't leave garden. Optional: add 2 vine blights for higher level.",
+      "actions": [
+        {
+          "name": "Navigate Garden",
+          "type": "survival",
+          "description": "Move through difficult terrain carefully"
+        },
+        {
+          "name": "Detect Ambush",
+          "type": "perception",
+          "description": "Contested check vs Shambling Mound's Stealth"
+        },
+        {
+          "name": "Combat Encounter",
+          "type": "combat",
+          "description": "Fight Shambling Mound (and vine blights)"
+        }
+      ]
+    },
+    
+    {
+      "_id": "ObjectId()",
+      "name": "Writing Desk (C2)",
+      "envDesc": "Clearing in garden center with large desk and bookshelves. Papers scattered everywhere, many damaged by rain through broken window above. Alchemist's kit tools present. Alistair's original research station.",
+      "NPCs": [],
+      "connectVenues": ["garden_c1"],
+      "storyDesc": "CRITICAL LOCATION. Contains key information: Alistair Porridgepot identified as researcher, details of progression from animal/plant to human experiments, soul research focus, shift to conjuration magic, main lab moved to Mill. DC 15 Investigation finds Construct Phrase Book (controls Flesh Golem and Helmed Horror). Possible additional magic item (DM choice). Investigation check determines search time.",
+      "actions": [
+        {
+          "name": "Search Papers",
+          "type": "investigation",
+          "description": "Variable DC - determines search time and info found"
+        },
+        {
+          "name": "Find Phrase Book",
+          "type": "investigation",
+          "dc": 15,
+          "description": "Locate Construct Phrase Book for controlling golems"
+        },
+        {
+          "name": "Study Incantations",
+          "type": "arcana",
+          "dc": 13,
+          "description": "30 minutes study to learn construct control phrases"
+        },
+        {
+          "name": "Search for Magic Items",
+          "type": "investigation",
+          "description": "Find additional magical loot (DM discretion)"
+        }
+      ]
+    },
+    
+    {
+      "_id": "ObjectId()",
+      "name": "Mill Garden (M1)",
+      "envDesc": "150ft square area enclosed by 10ft high stone wall. Large garden of alchemical herbs, fruits, and flowers with winding stone paths. Single gate opposite mill entrance with direct path. Over a dozen denizens tend garden at all times (never sleep). Two guards at gate, two at mill front door.",
+      "NPCs": ["garden_denizens", "gate_guards", "mill_door_guards"],
+      "connectVenues": ["town_center", "mill_exterior_m1"],
+      "storyDesc": "Heavily guarded approach to final battle. Guards can be tricked but notify Alistair immediately by walking off. DC 15 Stealth to sneak past denizens (who have blindsight). If noticed, denizens approach with clueless charm but Alistair may hear conversation and fire spells through windows. Combat: starts with 3 denizens, 1d4 join each round (max 12). Guards never change day/night.",
+      "actions": [
+        {
+          "name": "Trick Guards",
+          "type": "deception",
+          "dc": 10,
+          "description": "Convince guards to let party through (alerts Alistair)"
+        },
+        {
+          "name": "Sneak Through Garden",
+          "type": "stealth",
+          "dc": 15,
+          "description": "Avoid denizens with blindsight"
+        },
+        {
+          "name": "Garden Combat",
+          "type": "combat",
+          "description": "3 denizens + 1d4 per round (max 12), Alistair casts through windows"
+        }
+      ]
+    },
+    
+    {
+      "_id": "ObjectId()",
+      "name": "Mill Exterior (M1)",
+      "envDesc": "80ft tall cylindrical white brick structure with slightly sloping walls to domed top (10ft radius curved platform). Large wind turbine protrudes 50ft up with four sails (30ft long, 10ft wide wood/cloth). Sails move slowly. Grinding metal sound from within. Several tall slit windows (2ft x 3ft) running up sides.",
+      "NPCs": [],
+      "connectVenues": ["mill_garden_m1", "workshop_m2"],
+      "storyDesc": "Final dungeon entrance. Main door has permanent alarm spell (alerts Alistair if non-denizen passes). Windows allow Alistair to fire spells out or teleport through with Misty Step/Benign Transportation.",
+      "actions": [
+        {
+          "name": "Enter Main Door",
+          "type": "interaction",
+          "description": "Trigger permanent alarm spell (alerts Alistair)"
+        },
+        {
+          "name": "Climb to Window",
+          "type": "athletics",
+          "description": "Scale wall to enter through slit window"
+        }
+      ]
+    },
+    
+    {
+      "_id": "ObjectId()",
+      "name": "Workshop (M2)",
+      "envDesc": "Ground floor of mill. Four long tables covered in carpentry tools and wood pieces. Well-organized workspace for furniture construction.",
+      "NPCs": ["workshop_denizens"],
+      "connectVenues": ["mill_exterior_m1", "laboratory_m3"],
+      "storyDesc": "Six denizens work here building tools and furniture for town. Morning cart comes to collect furniture. Workers join laboratory combat by round 3 if alerted. Can add up to 1d4 denizens every 2 rounds after (max 8 total from workshop + garden).",
+      "actions": [
+        {
+          "name": "Sneak Through",
+          "type": "stealth",
+          "description": "Pass through without alerting workers"
+        },
+        {
+          "name": "Distract Workers",
+          "type": "deception/performance",
+          "description": "Keep denizens occupied"
+        }
+      ]
+    },
+    
+    {
+      "_id": "ObjectId()",
+      "name": "Laboratory (M3)",
+      "envDesc": "60ft tall room, 30ft radius at base. Center: huge iron basin (15ft diameter, 20ft tall) on 5ft platform filled with churning yellow living slime. Wind turbine mechanism cranks huge blades stirring pot contents. Walls cluttered with shelving, cabinets, boxes containing hundreds of magical items, bubbling chemicals, unstable crystals, lab tools. Three barrels beside basin contain ochre jellies. Rope and lever system above pot holds Jaylen suspended.",
+      "NPCs": ["alistair_porridgepot", "helmed_horror", "laboratory_denizens", "ochre_jellies"],
+      "connectVenues": ["workshop_m2"],
+      "storyDesc": "FINAL BATTLE. Helmed Horror guards stairs, attacks non-denizens/Alistair automatically. Three denizens assist experiments. Alistair hiding behind pot if aware of party, otherwise at desk. Always has Mage Armor. Jaylen tied above pot at half health, 1 exhaustion level. Alistair threatens to drop Jaylen if losing. Pot: 4d10 acid/turn, DC 18 Athletics to escape. Barrels: 10 damage or DC 14 Athletics opens, releases ochre jelly (Alistair commands them). Unstable shelves: d20 on damage/AoE, 10+ triggers explosion (see Arcane Explosion Table). DC 12 Arcana identifies unstable materials for purposeful detonation. Workshop denizens join round 3, garden denizens after (1d4 per 2 rounds, max 8). Alistair casts Blink/Mirror Image ASAP (precasts if aware). Can teleport through windows but stays near mill. Fights to death, cannot negotiate. On death, constructs continue last orders, denizens can be persuaded to stop. Possible magic loot on shelves.",
+      "actions": [
+        {
+          "name": "Final Combat",
+          "type": "combat",
+          "description": "Fight Alistair, Helmed Horror, denizens, ochre jellies in waves"
+        },
+        {
+          "name": "Rescue Jaylen",
+          "type": "athletics/acrobatics",
+          "description": "Free Jaylen from rope system above acid pot"
+        },
+        {
+          "name": "Trigger Explosions",
+          "type": "arcana",
+          "dc": 12,
+          "description": "Identify and detonate unstable materials strategically"
+        },
+        {
+          "name": "Open Barrels",
+          "type": "athletics",
+          "dc": 14,
+          "description": "Release ochre jellies (10 damage also works)"
+        },
+        {
+          "name": "Escape Acid Pot",
+          "type": "athletics",
+          "dc": 18,
+          "description": "Pull self from sticky slime (4d10 acid/turn)"
+        },
+        {
+          "name": "Negotiate",
+          "type": "diplomacy",
+          "description": "Attempt futile negotiation with mad Alistair"
+        }
+      ]
+    }
+  ],
+  
+  "npcs": [
+    {
+      "_id": "ObjectId()",
+      "name": "Humantown Denizen (Generic)",
+      "desc": "A semi-intelligent yellow slime transformed into human form. Appears human at glance but has clammy skin, faint sweet fruit smell, grafted clothing, eyes that don't make eye contact, mouth slightly off-sync when speaking. Fixed smile. Rigid movement. Unsettlingly moist hands.",
+      "stat": "Use Humantown Denizen statblock (Appendix A) - Medium ooze, shapechanger ability, blindsight, resistant to acid, vulnerable when in humanoid form",
+      "actions": [
+        {
+          "name": "Mimic Conversation",
+          "type": "social",
+          "description": "Speaks in broken, repetitive manner with limited knowledge. Parrots player statements randomly. States obvious facts. Spaces out when confused and changes topic. DC 10 or less for Deception/Persuasion but fears straying from tasks."
+        },
+        {
+          "name": "Report to Alistair",
+          "type": "alert",
+          "description": "Reports adventurers if threatened, upset, or adventurers stay >1 day without explanation"
+        },
+        {
+          "name": "Recall Traveler",
+          "type": "information",
+          "description": "Some remember traveler matching Jaylen's description but don't know his fate"
+        }
+      ],
+      "intention": "Follow assigned task (farming, tavern work, carpentry). Mimic human behavior and conversation. Please Alistair and avoid reprimand.",
+      "target": "Continue existing in mimicry of human society. Avoid disruption to town routine.",
+      "personality": "Overly chirpy. Oblivious to own stupidity. Easily confused and tricked. Childlike simplicity. Lacks creativity, names, and general knowledge. Non-hostile unless threatened. Fears disappointing Alistair."
+    },
+    
+    {
+      "_id": "ObjectId()",
+      "name": "Tavern Owner",
+      "desc": "Humantown denizen running the tavern. Same physical characteristics as other denizens but holds position of slight authority. Has keys to jail cages.",
+      "stat": "Use Humantown Denizen statblock - carries jail keys",
+      "actions": [
+        {
+          "name": "Feign Ignorance",
+          "type": "deception",
+          "description": "Initially hides knowledge of Jaylen's arrest"
+        },
+        {
+          "name": "Reveal Information",
+          "type": "social",
+          "description": "With successful Persuasion/Intimidation, reveals Jaylen was arrested for 'breaking a law' (doesn't know which) and taken to jail. Acts like guilty Labrador."
+        },
+        {
+          "name": "Lead Arrest Party",
+          "type": "combat_trigger",
+          "description": "If Alistair notified of adventurers, leads 5 denizens to politely request they come to jail. Follows them for 1 hour if refused, then uses force."
+        }
+      ],
+      "intention": "Run tavern properly. Keep order. Protect information that might cause trouble.",
+      "target": "Maintain tavern operations. Follow Alistair's orders regarding prisoners.",
+      "personality": "Slightly more knowledgeable than average denizen. Shows guilt when lying. Still easily persuaded/intimidated. Dutiful to Alistair's commands."
+    },
+    
+    {
+      "_id": "ObjectId()",
+      "name": "Jaylen",
+      "desc": "Human fighter (Veteran stats) and friend of the adventurers. Curious investigator who discovered Humantown wasn't on maps and investigated despite its creepy nature. Captured in Museum of Human History after one day of investigation. Currently held in Mill laboratory.",
+      "stat": "Veteran (5e Monster Manual) - currently at half hit points with 1 level of exhaustion",
+      "actions": [
+        {
+          "name": "Provide Information",
+          "type": "social",
+          "description": "Can explain discoveries about Humantown and capture circumstances if freed"
+        },
+        {
+          "name": "Join Combat",
+          "type": "combat",
+          "description": "Fights alongside party if rescued, though weakened"
+        }
+      ],
+      "intention": "Survive captivity. Be rescued. Warn others about danger.",
+      "target": "Escape and expose Humantown's true nature.",
+      "personality": "Curious and brave, sometimes to a fault. Investigative mind. Loyal friend. Currently exhausted and frightened but maintains composure."
+    },
+    
+    {
+      "_id": "ObjectId()",
+      "name": "Alistair Porridgepot",
+      "desc": "Halfling mad alchemist/wizard obsessed with creating life. Laughed out of Conservators of Erudition, Reverence Academy, and Three-Eyed Sect of Hermit Hags. Years of isolation conducting increasingly horrific experiments. Sanity deteriorated completely. Created Humantown denizens by feeding sentient creatures to ochre jellies. Views adventurers as threats or test subjects.",
+      "stat": "Use custom Alistair Porridgepot statblock (Appendix A) - Wizard with Lightning Bolt (multiple casts), Blink, Mirror Image, Mage Armor (always active), Misty Step, Benign Transportation. Reduce spell slots for lower-level parties.",
+      "actions": [
+        {
+          "name": "Cast Spells",
+          "type": "combat",
+          "description": "Lightning Bolt (hits hard - multiple 3rd/4th slots), area effects, Blink, Mirror Image (precast if aware). Fires through mill windows."
+        },
+        {
+          "name": "Command Constructs",
+          "type": "command",
+          "description": "Mentally controls ochre jellies. Helmed Horror follows standing orders."
+        },
+        {
+          "name": "Threaten Jaylen",
+          "type": "tactical",
+          "description": "If losing, runs to lever system and threatens to drop Jaylen in acid pot unless party surrenders"
+        },
+        {
+          "name": "Tactical Retreat",
+          "type": "movement",
+          "description": "Teleports through windows via Misty Step/Benign Transportation but stays near mill to protect research"
+        },
+        {
+          "name": "False Negotiation",
+          "type": "deception",
+          "description": "Pretends to negotiate if pressured but seeks opportunity to attack"
+        }
+      ],
+      "intention": "Protect research at all costs. Eliminate threats. Interrogate Jaylen about who knows of Humantown.",
+      "target": "Perfect the creation of artificial intelligent life. Gain recognition from magical elite. Continue experiments indefinitely.",
+      "personality": "Completely insane. Obsessive. Views people as experimental subjects, not beings. No empathy. Brilliant but twisted mind. Cannot be reasoned with. Paranoid about research being stolen or destroyed. Arrogant about his achievements."
+    },
+    
+    {
+      "_id": "ObjectId()",
+      "name": "Cow Slime",
+      "desc": "Alistair's creations resembling cattle but made of slime. Look like normal cows at glance but emit sickly sweet smell and are sticky to touch. Moo without moving throat or mouth.",
+      "stat": "Use Cow Slime statblock (Appendix A) - similar to denizens but animal form",
+      "actions": [
+        {
+          "name": "Graze",
+          "type": "roleplay",
+          "description": "Mimic cattle behavior in paddocks"
+        },
+        {
+          "name": "Attack",
+          "type": "combat",
+          "description": "1d4 cows attack on failed DC 12 Animal Handling check"
+        }
+      ],
+      "intention": "Mimic cattle behavior. Follow simple herding instructions.",
+      "target": "Exist in paddocks as fake livestock.",
+      "personality": "Even less intelligent than denizens. Pure mimicry of animal behavior. Potentially aggressive if mishandled."
+    },
+    
+    {
+      "_id": "ObjectId()",
+      "name": "The First Slime",
+      "desc": "Alistair's first semi-successful creation. Huge mass of roiling yellow slime contained in 7ft glass canister. Exhibits partial consciousness with faces forming and disappearing in its substance. Constantly murmurs. More dangerous than regular denizens.",
+      "stat": "Use The First Slime statblock (Appendix A) - Large ooze, higher stats than denizens",
+      "actions": [
+        {
+          "name": "Break Free",
+          "type": "combat_trigger",
+          "description": "Attacks immediately when glass canister is broken"
+        },
+        {
+          "name": "Slam Attack",
+          "type": "combat",
+          "description": "Powerful physical attacks"
+        },
+        {
+          "name": "Engulf",
+          "type": "combat",
+          "description": "Can engulf and digest enemies"
+        }
+      ],
+      "intention": "Consume. Destroy. Simple hostile drives.",
+      "target": "Break free from containment. Feed.",
+      "personality": "Proto-consciousness. More instinct than thought. Aggressive and hungry. The nightmare version of denizens - what they could become without Alistair's 'refinement'."
+    },
+    
+    {
+      "_id": "ObjectId()",
+      "name": "Flesh Golem (Living)",
+      "desc": "Necromantic creation from Alistair's earlier experiments. Large humanoid made of stitched corpse parts. One remains alive among six dead specimens in Museum.",
+      "stat": "Flesh Golem (5e Monster Manual) - immune to lightning, resistant to non-magical weapons",
+      "actions": [
+        {
+          "name": "Slam",
+          "type": "combat",
+          "description": "Powerful melee attacks"
+        },
+        {
+          "name": "Berserk",
+          "type": "combat",
+          "description": "May go berserk when damaged"
+        },
+        {
+          "name": "Surprise Attack",
+          "type": "combat",
+          "description": "Attacks adventurers entering without light for surprise round"
+        }
+      ],
+      "intention": "Attack intruders. Follow last command from Alistair.",
+      "target": "Destroy enemies in Museum.",
+      "personality": "Mindless construct. Pure aggression. No personality, only programming."
+    },
+    
+    {
+      "_id": "ObjectId()",
+      "name": "Black Pudding",
+      "desc": "Carnivorous ooze. Most specimens in Museum are dead from starvation. Optionally one may be alive.",
+      "stat": "Black Pudding (5e Monster Manual) - amorphous, corrosive form, splits when damaged",
+      "actions": [
+        {
+          "name": "Pseudopod",
+          "type": "combat",
+          "description": "Corrosive melee attack"
+        },
+        {
+          "name": "Split",
+          "type": "combat",
+          "description": "Divides into smaller puddings when hit with certain attacks"
+        }
+      ],
+      "intention": "Consume organic matter.",
+      "target": "Feed and survive.",
+      "personality": "Pure instinct. Mindless hunger."
+    },
+    
+    {
+      "_id": "ObjectId()",
+      "name": "Shambling Mound",
+      "desc": "Accidental by-product of Alistair's botanical experiments. Large plant creature lurking in Museum conservatory garden. Composed of rotting vegetation.",
+      "stat": "Shambling Mound (5e Monster Manual) - resistant to fire, immune to lightning (heals from it)",
+      "actions": [
+        {
+          "name": "Slam",
+          "type": "combat",
+          "description": "Powerful vine attacks"
+        },
+        {
+          "name": "Engulf",
+          "type": "combat",
+          "description": "Wraps around and suffocates prey"
+        },
+        {
+          "name": "Ambush",
+          "type": "stealth",
+          "description": "Contested Stealth vs Perception to surprise party in garden"
+        }
+      ],
+      "intention": "Defend territory in garden. Hunt prey.",
+      "target": "Remain in conservatory. Feed on organic matter.",
+      "personality": "Territorial. Patient hunter. Will not leave garden area. Animalistic intelligence."
+    },
+    
+    {
+      "_id": "ObjectId()",
+      "name": "Vine Blight",
+      "desc": "Optional additions to garden encounter for higher-level parties. Plant creatures animated by dark magic.",
+      "stat": "Vine Blight (5e Monster Manual) - medium plant, vulnerable to fire",
+      "actions": [
+        {
+          "name": "Constrict",
+          "type": "combat",
+          "description": "Grappling vine attack"
+        },
+        {
+          "name": "Entangling Plants",
+          "type": "combat",
+          "description": "Root enemies in place"
+        }
+      ],
+      "intention": "Attack intruders with Shambling Mound.",
+      "target": "Protect garden territory.",
+      "personality": "Mindless plant construct. Pure aggression."
+    },
+    
+    {
+      "_id": "ObjectId()",
+      "name": "Helmed Horror",
+      "desc": "Animated suit of armor guarding Laboratory M3 stairs. Follows standing orders to attack any non-denizen/non-Alistair creature. Can be controlled with Construct Phrase Book.",
+      "stat": "Helmed Horror (5e Monster Manual) - resistant to force/nonmagical weapons, immune to spells (spell immunity feature)",
+      "actions": [
+        {
+          "name": "Longsword",
+          "type": "combat",
+          "description": "Multiple melee attacks"
+        },
+        {
+          "name": "Guard Stairs",
+          "type": "tactical",
+          "description": "Automatically engages intruders entering laboratory"
+        },
+        {
+          "name": "Obey Phrase Book",
+          "type": "command",
+          "description": "Can be controlled if players found and studied Construct Phrase Book from Museum"
+        }
+      ],
+      "intention": "Guard laboratory entrance. Attack unauthorized creatures including animals.",
+      "target": "Prevent intrusion into Alistair's main workspace.",
+      "personality": "Mindless construct. Unwavering in duty. Follows orders precisely. No negotiation or mercy."
+    },
+    
+    {
+      "_id": "ObjectId()",
+      "name": "Ochre Jelly",
+      "desc": "Carnivorous slime contained in three barrels beside iron basin in Laboratory. Base material for Humantown denizens - when fed enough sentient creatures, develops consciousness. Alistair can mentally command them.",
+      "stat": "Ochre Jelly (5e Monster Manual) - splits when damaged by slashing/lightning, immune to lightning/slashing",
+      "actions": [
+        {
+          "name": "Pseudopod",
+          "type": "combat",
+          "description": "Acid damage melee attack"
+        },
+        {
+          "name": "Split",
+          "type": "combat",
+          "description": "Divides when hit with slashing/lightning"
+        },
+        {
+          "name": "Follow Commands",
+          "type": "command",
+          "description": "Obeys Alistair's mental commands, otherwise hostile to all"
+        }
+      ],
+      "intention": "Consume organic matter. Follow Alistair's commands.",
+      "target": "Feed and survive. Protect laboratory if commanded.",
+      "personality": "Mindless hunger unless commanded. Raw material for consciousness. More instinct than thought."
+    },
+    
+    {
+      "_id": "ObjectId()",
+      "name": "Warehouse Reject Denizens",
+      "desc": "Failed experiments stored in Warehouse of Rejects. Semi-formed humanoid/slime hybrids lacking shapechanger ability. Many trapped in barrels or containers. Generally non-hostile, just shuffling and moaning, but attack if threatened.",
+      "stat": "Use Humantown Denizen statblock but remove Shapechanger ability. 1d4+1 denizens encounter.",
+      "actions": [
+        {
+          "name": "Shamble",
+          "type": "roleplay",
+          "description": "Move around warehouse moaning"
+        },
+        {
+          "name": "Defend Self",
+          "type": "combat",
+          "description": "Attack only if threatened"
+        }
+      ],
+      "intention": "Exist in confused state. Avoid pain.",
+      "target": "Survive in warehouse.",
+      "personality": "Pitiable. Confused. More instinct than the 'successful' denizens. Defensive rather than aggressive."
+    },
+    
+    {
+      "_id": "ObjectId()",
+      "name": "Ochre Jelly Amalgamation",
+      "desc": "Horrifying fusion of multiple failed denizens merged into one ochre jelly mass. Found in Warehouse of Rejects.",
+      "stat": "Ochre Jelly (5e Monster Manual) - represents multiple denizens combined",
+      "actions": [
+        {
+          "name": "Pseudopod",
+          "type": "combat",
+          "description": "Acid damage attack"
+        },
+        {
+          "name": "Split",
+          "type": "combat",
+          "description": "Can divide when damaged by slashing/lightning"
+        },
+        {
+          "name": "Engulf",
+          "type": "combat",
+          "description": "Surrounds and dissolves prey"
+        }
+      ],
+      "intention": "Attack and consume intruders.",
+      "target": "Feed on organic matter.",
+      "personality": "Tormented fusion of multiple consciousness fragments. Pure suffering and hunger. More aggressive than normal ochre jelly."
+    }
+  ]
+}

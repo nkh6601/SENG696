@@ -1,0 +1,28 @@
+[
+    {
+      "name": "Arrival and Investigation",
+      "envDesc": "A recently constructed town with boxy, simple buildings (1-3 rooms each) less than a year old. Farms with paddocks of slime-cattle surround the settlement. Buildings are mostly empty inside with minimal furniture. No commercial buildings exist except the tavern. The atmosphere is unnaturally orderly and eerily quiet.",
+      "venues": ["welcome_sign", "town_center", "tavern", "jail", "warehouse_of_rejects", "residential_buildings", "cattle_paddocks"],
+      "storyDesc": "Players arrive seeking Jaylen who went missing investigating this unmapped town. They must interact with the unsettling denizens - semi-intelligent slimes mimicking humans. Denizens provide clues about a traveler matching Jaylen's description being arrested and taken to jail. The tavern owner knows more but must be persuaded. Investigation reveals the town's unnatural origin. Players can work at farms, stay at tavern, or break into locations. If denizens feel threatened or players stay more than one day without explanation, Alistair sends forces to arrest them.",
+      "startVenue": "welcome_sign",
+      "startNarrative": "There are no paved roads that lead into the town. As you approach, you see a large sign: 'Welcome to Humantown'. Beyond it, farms stretch toward a small collection of buildings, with a large windmill visible behind the town. A farmer tending cattle notices you and waves enthusiastically with a fixed, unsettling smile."
+    },
+    
+    {
+      "name": "Museum of Human History",
+      "envDesc": "A three-story building with frosted glass windows. The top floor is a glass conservatory overgrown with wild plants breaking through windows. Front door is locked with a 'closed' sign. One side window (area A4) is broken and boarded up with torn fabric from Jaylen's clothing. The interior contains display rooms of Alistair's experiments: alchemical materials, taxidermied animals, flesh golems, dissected humanoids, and botanical horrors.",
+      "venues": ["museum_exterior", "reception_a1", "alchemist_display_a2", "black_pudding_room_a3", "taxidermy_room_a4", "first_creation_a5", "flesh_golem_room_b1", "dissection_rooms_b2", "garden_c1", "writing_desk_c2"],
+      "storyDesc": "Jaylen's notebook indicates he planned to investigate the Museum before his capture. This location reveals Alistair Porridgepot's identity and his experiments creating life from slime. Players find evidence of transmutation, necromancy, and conjuration experiments. Combat encounters include flesh golems, black puddings, The First Slime, and a shambling mound. The writing desk contains crucial information about Alistair moving his main laboratory to the Mill and a phrase book to control constructs.",
+      "startVenue": "museum_exterior",
+      "startNarrative": "The Museum of Human History looms before you, its three stories crowned by a glass conservatory where wild vegetation presses against cracked windows. The front door bears a faded 'closed' sign, and on one side, a boarded window shows a scrap of torn fabric that matches Jaylen's clothing."
+    },
+    
+    {
+      "name": "The Mill - Final Confrontation",
+      "envDesc": "An 80ft tall cylindrical white brick structure with a domed top, featuring a massive wind turbine with four 30ft sails. Surrounded by a 150ft square stone wall (10ft high) enclosing an alchemical garden with stone paths. The interior has a ground-floor workshop and a 60ft tall laboratory containing a 15ft diameter iron basin filled with churning yellow slime, stirred by turbine-powered mechanisms. Shelves line the walls with unstable magical materials.",
+      "venues": ["mill_garden_m1", "mill_exterior_m1", "workshop_m2", "laboratory_m3"],
+      "storyDesc": "The final confrontation location where Alistair Porridgepot conducts his slime-creation experiments. Jaylen is held captive, suspended above the massive slime vat. The garden has 12+ denizens tending plants, with guards at the gate and mill entrance. Permanent alarm spell on the main door. Combat gauntlet includes: Helmed Horror guard, 3 denizen assistants, 3 ochre jellies in barrels, 6 workshop denizens, and waves of garden denizens (1d4 every 2 rounds, max 8). Alistair fights using area spells, summons, and threats against Jaylen. Unstable shelves can explode (d20 roll, 10+ triggers arcane explosion). Victory requires defeating Alistair and rescuing Jaylen.",
+      "startVenue": "mill_garden_m1",
+      "startNarrative": "The grinding of metal echoes from the massive windmill ahead. Through the stone-walled garden, you see denizens tending alchemical plants with unsettling precision. Two guards stand at the gate, their fixed smiles never wavering. Beyond them, the white brick mill towers 80 feet high, its turbine sails turning slowly in the wind. Somewhere inside, Jaylen awaits rescue - if he still lives."
+    }
+  ]

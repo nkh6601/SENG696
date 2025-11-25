@@ -1,0 +1,21 @@
+{
+    "name": "Humantown: Rescue from the Town of Slimes",
+    "stages": [
+      {
+        "stageId": "stage_01",
+        "name": "Arrival and Investigation"
+      },
+      {
+        "stageId": "stage_02", 
+        "name": "Museum of Human History"
+      },
+      {
+        "stageId": "stage_03",
+        "name": "The Mill - Final Confrontation"
+      }
+    ],
+    "startNarrative": "The Summer Expanse stretches before you like an ocean of golden grass. In your hand, you clutch Jaylen's note—his last message before he disappeared five days ago.\n\n\"Found something strange. A town that shouldn't exist. Not on any map. I'm going to investigate. If you don't hear from me in three days, follow the eastern road from Millbrook for 20 miles. You'll see the windmill first.\"\n\nThat was five days ago. Two days past his deadline.\n\nYou crest a small rise, and there it is. A wooden sign stands in the prairie: \"Welcome to Humantown.\" Beyond it, neat paddocks and simple buildings stretch toward a massive white windmill. Everything looks too new, too orderly—like a child's toy village.\n\nA farmer tending cattle notices you and turns with an unnaturally rigid motion. His smile is fixed, too wide, and doesn't waver as he raises his hand and waves.\n\n\"Hello there!\" his voice carries across the prairie, unnaturally cheerful. \"Isn't it wonderful to have hands? They can do so many things!\"\n\nHe walks toward you, his skin glistening with an odd moisture. That smile never changes—not even when he blinks.\n\nYour instincts scream that something is deeply wrong.\n\nBut Jaylen is somewhere in that town. And you're not leaving without him.",
+    "objective": "Rescue Jaylen from Alistair Porridgepot and uncover the dark secrets of Humantown, a settlement inhabited by semi-intelligent slime creatures mimicking human society.",
+    "outline": "Adventurers arrive in Humantown searching for their missing friend Jaylen. They must navigate interactions with creepy humanoid slimes (denizens) while investigating the town's buildings. Clues lead them to the Museum of Human History where they discover Alistair's horrific experiments. The adventure culminates in a combat gauntlet at the Mill where Alistair holds Jaylen captive above a vat of living slime.",
+    "mapDesc": "Humantown is a small settlement on the edge of The Summer Expanse prairie, surrounded by farms with cattle paddocks. The town center contains residential buildings, a tavern, jail, warehouse, and the Museum of Human History. A large windmill (the Mill) sits behind the town, surrounded by a 150ft square stone-walled garden. The settlement appeared within the last year and is not on any maps."
+  }

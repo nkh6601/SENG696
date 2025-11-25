@@ -1,0 +1,34 @@
+check_difficulty:
+  description: >
+    Conduct a thorough evaluate about difficulty level of {player}'s action in that context.
+    The difficulty level is indicated by a number between -1 to 21. The higher the number indicate the higher difficulty and less chance to be success. 
+    21 indicate it is impossible for this action to be success. -1 indicate the action is success without the need of difficulty check. 
+    Overall, 5 for "easy," 10 for "medium," 15 for "hard," and 20 for "very hard".
+    Make sure you find any relevant information in dungeons and dragons 5E 2014 rule book that applies to the action for the evaluation.
+  expected_output: >
+    A JSON format difficulty check data, which include:
+    - The difficulty level of action in a number between -1 to 21.
+    - A reasoning about the difficulty of the action
+  agent: judge
+
+good_action_result:
+  description: >
+    Based on the dungeons and dragons 5E 2014 rule, {campaign} information, and current game status, evaluate the potetntial result of the success action, which should be positive to {player}. 
+    Descript the impacts of the success {player}'s action on {player}, other characters, environment, story, etc. 
+  expected_output: >
+    A JSON format data, which include:
+    - A text descript the impacts of the success {player}'s action
+    - A reasoning about the positive impacts.
+    - The time of the action used.
+  agent: judge
+
+bad_action_result:
+  description: >
+    Based on the dungeons and dragons 5E 2014 rule, {campaign} information, and current game status, evaluate the potetntial result of the failure action, which should be negative to {player}. 
+    Descript the impacts of the failure {player}'s action on {player}, other characters, environment, story, etc. 
+  expected_output: >
+    A JSON format data, which include:
+    - A text descript the impacts of the failure {player}'s action
+    - A reasoning about the negative impacts.
+    - The time of the action used.
+  agent: judge

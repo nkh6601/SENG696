@@ -1,0 +1,17 @@
+if_reaction:
+  description: >
+    Review the context you got and determine if any reaction to the {player}'s action is possible that align with the goal.  
+  expected_output: >
+    A JSON format data, which include:
+    - A boolean value indicate if any reaction.     
+    - A reasoning about the boolean result.
+  agent: NPC
+
+evaluate_reaction:
+  description: >
+    Review the context you got and determine the reaction to the {player}'s action that is possible and align with the goal.  
+  expected_output: >
+    A JSON format data, which include:
+    - A text description of the reaction, objective and with all necessary information.      
+    - A reasoning about the boolean result.
+  agent: NPC

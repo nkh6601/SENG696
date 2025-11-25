@@ -1,0 +1,37 @@
+narrative_task:
+  description: >
+    Review the campaign information and the {player}'s action result you got and expanding it into a 1-3 sentance of narrative.
+    The narrative may contain either the third person description, dialogue from {player}. Make sure the report is interesting and contains any and all relevant information from {campaign}.
+  expected_output: >
+    A JSON format narrative data, which include:
+    - A list of descriptions/dialogues with:
+      - The speaker. "Narrator" in the case of third person description, and {player} if dialogue.
+      - The narrative. 1-2 sentance of descriptions/dialogues.
+  agent: narrator
+
+validate_prompt:
+  description: >
+    Review the {campaign} information, current game status, and the player's prompt you got to determine if any conflict or invalid information.
+  expected_output: >
+    A JSON format data, which include:
+    - A boolean value indicate if the prompt valid.
+    - A reasoning about the boolean result.
+  agent: narrator
+
+action_extract:
+  description: >
+    Review the campaign information, current game status and the player's prompt you got to extract the action player want to preform in a plain and objective manner.
+    The action should contant all relevant information from the prompt and the context to clearly descript the action.
+  expected_output: >
+    A JSON format data, which include:
+    - A text description of the player's proposed action and all relevant information, if applicable: the environment, the target, player status, etc.
+  agent: narrator
+
+descript_environment:
+  description: >
+    Review the campaign information, current game status and the player's prompt you got to extract the action player want to preform in a plain and objective manner.
+    The action should contant all relevant information from the prompt and the context to clearly descript the action.
+  expected_output: >
+    A JSON format data, which include:
+    - A text description of the player's proposed action and all relevant information, if applicable: the environment, the target, player status, etc.
+  agent: narrator

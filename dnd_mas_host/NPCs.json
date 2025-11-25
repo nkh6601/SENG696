@@ -1,0 +1,350 @@
+[
+    {
+      "name": "Humantown Denizen (Generic)",
+      "desc": "A semi-intelligent yellow slime transformed into human form. Appears human at glance but has clammy skin, faint sweet fruit smell, grafted clothing, eyes that don't make eye contact, mouth slightly off-sync when speaking. Fixed smile. Rigid movement. Unsettlingly moist hands.",
+      "stat": "Use Humantown Denizen statblock (Appendix A) - Medium ooze, shapechanger ability, blindsight, resistant to acid, vulnerable when in humanoid form",
+      "actions": [
+        {
+          "name": "Mimic Conversation",
+          "type": "social",
+          "description": "Speaks in broken, repetitive manner with limited knowledge. Parrots player statements randomly. States obvious facts. Spaces out when confused and changes topic. DC 10 or less for Deception/Persuasion but fears straying from tasks."
+        },
+        {
+          "name": "Report to Alistair",
+          "type": "alert",
+          "description": "Reports adventurers if threatened, upset, or adventurers stay >1 day without explanation"
+        },
+        {
+          "name": "Recall Traveler",
+          "type": "information",
+          "description": "Some remember traveler matching Jaylen's description but don't know his fate"
+        }
+      ],
+      "intention": "Follow assigned task (farming, tavern work, carpentry). Mimic human behavior and conversation. Please Alistair and avoid reprimand.",
+      "target": "Continue existing in mimicry of human society. Avoid disruption to town routine.",
+      "personality": "Overly chirpy. Oblivious to own stupidity. Easily confused and tricked. Childlike simplicity. Lacks creativity, names, and general knowledge. Non-hostile unless threatened. Fears disappointing Alistair."
+    },
+    
+    {
+      "name": "Tavern Owner",
+      "desc": "Humantown denizen running the tavern. Same physical characteristics as other denizens but holds position of slight authority. Has keys to jail cages.",
+      "stat": "Use Humantown Denizen statblock - carries jail keys",
+      "actions": [
+        {
+          "name": "Feign Ignorance",
+          "type": "deception",
+          "description": "Initially hides knowledge of Jaylen's arrest"
+        },
+        {
+          "name": "Reveal Information",
+          "type": "social",
+          "description": "With successful Persuasion/Intimidation, reveals Jaylen was arrested for 'breaking a law' (doesn't know which) and taken to jail. Acts like guilty Labrador."
+        },
+        {
+          "name": "Lead Arrest Party",
+          "type": "combat_trigger",
+          "description": "If Alistair notified of adventurers, leads 5 denizens to politely request they come to jail. Follows them for 1 hour if refused, then uses force."
+        }
+      ],
+      "intention": "Run tavern properly. Keep order. Protect information that might cause trouble.",
+      "target": "Maintain tavern operations. Follow Alistair's orders regarding prisoners.",
+      "personality": "Slightly more knowledgeable than average denizen. Shows guilt when lying. Still easily persuaded/intimidated. Dutiful to Alistair's commands."
+    },
+    
+    {
+      "name": "Jaylen",
+      "desc": "Human fighter (Veteran stats) and friend of the adventurers. Curious investigator who discovered Humantown wasn't on maps and investigated despite its creepy nature. Captured in Museum of Human History after one day of investigation. Currently held in Mill laboratory.",
+      "stat": "Veteran (5e Monster Manual) - currently at half hit points with 1 level of exhaustion",
+      "actions": [
+        {
+          "name": "Provide Information",
+          "type": "social",
+          "description": "Can explain discoveries about Humantown and capture circumstances if freed"
+        },
+        {
+          "name": "Join Combat",
+          "type": "combat",
+          "description": "Fights alongside party if rescued, though weakened"
+        }
+      ],
+      "intention": "Survive captivity. Be rescued. Warn others about danger.",
+      "target": "Escape and expose Humantown's true nature.",
+      "personality": "Curious and brave, sometimes to a fault. Investigative mind. Loyal friend. Currently exhausted and frightened but maintains composure."
+    },
+    
+    {
+      "name": "Alistair Porridgepot",
+      "desc": "Halfling mad alchemist/wizard obsessed with creating life. Laughed out of Conservators of Erudition, Reverence Academy, and Three-Eyed Sect of Hermit Hags. Years of isolation conducting increasingly horrific experiments. Sanity deteriorated completely. Created Humantown denizens by feeding sentient creatures to ochre jellies. Views adventurers as threats or test subjects.",
+      "stat": "Use custom Alistair Porridgepot statblock (Appendix A) - Wizard with Lightning Bolt (multiple casts), Blink, Mirror Image, Mage Armor (always active), Misty Step, Benign Transportation. Reduce spell slots for lower-level parties.",
+      "actions": [
+        {
+          "name": "Cast Spells",
+          "type": "combat",
+          "description": "Lightning Bolt (hits hard - multiple 3rd/4th slots), area effects, Blink, Mirror Image (precast if aware). Fires through mill windows."
+        },
+        {
+          "name": "Command Constructs",
+          "type": "command",
+          "description": "Mentally controls ochre jellies. Helmed Horror follows standing orders."
+        },
+        {
+          "name": "Threaten Jaylen",
+          "type": "tactical",
+          "description": "If losing, runs to lever system and threatens to drop Jaylen in acid pot unless party surrenders"
+        },
+        {
+          "name": "Tactical Retreat",
+          "type": "movement",
+          "description": "Teleports through windows via Misty Step/Benign Transportation but stays near mill to protect research"
+        },
+        {
+          "name": "False Negotiation",
+          "type": "deception",
+          "description": "Pretends to negotiate if pressured but seeks opportunity to attack"
+        }
+      ],
+      "intention": "Protect research at all costs. Eliminate threats. Interrogate Jaylen about who knows of Humantown.",
+      "target": "Perfect the creation of artificial intelligent life. Gain recognition from magical elite. Continue experiments indefinitely.",
+      "personality": "Completely insane. Obsessive. Views people as experimental subjects, not beings. No empathy. Brilliant but twisted mind. Cannot be reasoned with. Paranoid about research being stolen or destroyed. Arrogant about his achievements."
+    },
+    
+    {
+      "name": "Cow Slime",
+      "desc": "Alistair's creations resembling cattle but made of slime. Look like normal cows at glance but emit sickly sweet smell and are sticky to touch. Moo without moving throat or mouth.",
+      "stat": "Use Cow Slime statblock (Appendix A) - similar to denizens but animal form",
+      "actions": [
+        {
+          "name": "Graze",
+          "type": "roleplay",
+          "description": "Mimic cattle behavior in paddocks"
+        },
+        {
+          "name": "Attack",
+          "type": "combat",
+          "description": "1d4 cows attack on failed DC 12 Animal Handling check"
+        }
+      ],
+      "intention": "Mimic cattle behavior. Follow simple herding instructions.",
+      "target": "Exist in paddocks as fake livestock.",
+      "personality": "Even less intelligent than denizens. Pure mimicry of animal behavior. Potentially aggressive if mishandled."
+    },
+    
+    {
+      "name": "The First Slime",
+      "desc": "Alistair's first semi-successful creation. Huge mass of roiling yellow slime contained in 7ft glass canister. Exhibits partial consciousness with faces forming and disappearing in its substance. Constantly murmurs. More dangerous than regular denizens.",
+      "stat": "Use The First Slime statblock (Appendix A) - Large ooze, higher stats than denizens",
+      "actions": [
+        {
+          "name": "Break Free",
+          "type": "combat_trigger",
+          "description": "Attacks immediately when glass canister is broken"
+        },
+        {
+          "name": "Slam Attack",
+          "type": "combat",
+          "description": "Powerful physical attacks"
+        },
+        {
+          "name": "Engulf",
+          "type": "combat",
+          "description": "Can engulf and digest enemies"
+        }
+      ],
+      "intention": "Consume. Destroy. Simple hostile drives.",
+      "target": "Break free from containment. Feed.",
+      "personality": "Proto-consciousness. More instinct than thought. Aggressive and hungry. The nightmare version of denizens - what they could become without Alistair's 'refinement'."
+    },
+    
+    {
+      "name": "Flesh Golem (Living)",
+      "desc": "Necromantic creation from Alistair's earlier experiments. Large humanoid made of stitched corpse parts. One remains alive among six dead specimens in Museum.",
+      "stat": "Flesh Golem (5e Monster Manual) - immune to lightning, resistant to non-magical weapons",
+      "actions": [
+        {
+          "name": "Slam",
+          "type": "combat",
+          "description": "Powerful melee attacks"
+        },
+        {
+          "name": "Berserk",
+          "type": "combat",
+          "description": "May go berserk when damaged"
+        },
+        {
+          "name": "Surprise Attack",
+          "type": "combat",
+          "description": "Attacks adventurers entering without light for surprise round"
+        }
+      ],
+      "intention": "Attack intruders. Follow last command from Alistair.",
+      "target": "Destroy enemies in Museum.",
+      "personality": "Mindless construct. Pure aggression. No personality, only programming."
+    },
+    
+    {
+      "name": "Black Pudding",
+      "desc": "Carnivorous ooze. Most specimens in Museum are dead from starvation. Optionally one may be alive.",
+      "stat": "Black Pudding (5e Monster Manual) - amorphous, corrosive form, splits when damaged",
+      "actions": [
+        {
+          "name": "Pseudopod",
+          "type": "combat",
+          "description": "Corrosive melee attack"
+        },
+        {
+          "name": "Split",
+          "type": "combat",
+          "description": "Divides into smaller puddings when hit with certain attacks"
+        }
+      ],
+      "intention": "Consume organic matter.",
+      "target": "Feed and survive.",
+      "personality": "Pure instinct. Mindless hunger."
+    },
+    
+    {
+      "name": "Shambling Mound",
+      "desc": "Accidental by-product of Alistair's botanical experiments. Large plant creature lurking in Museum conservatory garden. Composed of rotting vegetation.",
+      "stat": "Shambling Mound (5e Monster Manual) - resistant to fire, immune to lightning (heals from it)",
+      "actions": [
+        {
+          "name": "Slam",
+          "type": "combat",
+          "description": "Powerful vine attacks"
+        },
+        {
+          "name": "Engulf",
+          "type": "combat",
+          "description": "Wraps around and suffocates prey"
+        },
+        {
+          "name": "Ambush",
+          "type": "stealth",
+          "description": "Contested Stealth vs Perception to surprise party in garden"
+        }
+      ],
+      "intention": "Defend territory in garden. Hunt prey.",
+      "target": "Remain in conservatory. Feed on organic matter.",
+      "personality": "Territorial. Patient hunter. Will not leave garden area. Animalistic intelligence."
+    },
+    
+    {
+      "name": "Vine Blight",
+      "desc": "Optional additions to garden encounter for higher-level parties. Plant creatures animated by dark magic.",
+      "stat": "Vine Blight (5e Monster Manual) - medium plant, vulnerable to fire",
+      "actions": [
+        {
+          "name": "Constrict",
+          "type": "combat",
+          "description": "Grappling vine attack"
+        },
+        {
+          "name": "Entangling Plants",
+          "type": "combat",
+          "description": "Root enemies in place"
+        }
+      ],
+      "intention": "Attack intruders with Shambling Mound.",
+      "target": "Protect garden territory.",
+      "personality": "Mindless plant construct. Pure aggression."
+    },
+    
+    {
+      "name": "Helmed Horror",
+      "desc": "Animated suit of armor guarding Laboratory M3 stairs. Follows standing orders to attack any non-denizen/non-Alistair creature. Can be controlled with Construct Phrase Book.",
+      "stat": "Helmed Horror (5e Monster Manual) - resistant to force/nonmagical weapons, immune to spells (spell immunity feature)",
+      "actions": [
+        {
+          "name": "Longsword",
+          "type": "combat",
+          "description": "Multiple melee attacks"
+        },
+        {
+          "name": "Guard Stairs",
+          "type": "tactical",
+          "description": "Automatically engages intruders entering laboratory"
+        },
+        {
+          "name": "Obey Phrase Book",
+          "type": "command",
+          "description": "Can be controlled if players found and studied Construct Phrase Book from Museum"
+        }
+      ],
+      "intention": "Guard laboratory entrance. Attack unauthorized creatures including animals.",
+      "target": "Prevent intrusion into Alistair's main workspace.",
+      "personality": "Mindless construct. Unwavering in duty. Follows orders precisely. No negotiation or mercy."
+    },
+    
+    {
+      "name": "Ochre Jelly",
+      "desc": "Carnivorous slime contained in three barrels beside iron basin in Laboratory. Base material for Humantown denizens - when fed enough sentient creatures, develops consciousness. Alistair can mentally command them.",
+      "stat": "Ochre Jelly (5e Monster Manual) - splits when damaged by slashing/lightning, immune to lightning/slashing",
+      "actions": [
+        {
+          "name": "Pseudopod",
+          "type": "combat",
+          "description": "Acid damage melee attack"
+        },
+        {
+          "name": "Split",
+          "type": "combat",
+          "description": "Divides when hit with slashing/lightning"
+        },
+        {
+          "name": "Follow Commands",
+          "type": "command",
+          "description": "Obeys Alistair's mental commands, otherwise hostile to all"
+        }
+      ],
+      "intention": "Consume organic matter. Follow Alistair's commands.",
+      "target": "Feed and survive. Protect laboratory if commanded.",
+      "personality": "Mindless hunger unless commanded. Raw material for consciousness. More instinct than thought."
+    },
+    
+    {
+      "name": "Warehouse Reject Denizens",
+      "desc": "Failed experiments stored in Warehouse of Rejects. Semi-formed humanoid/slime hybrids lacking shapechanger ability. Many trapped in barrels or containers. Generally non-hostile, just shuffling and moaning, but attack if threatened.",
+      "stat": "Use Humantown Denizen statblock but remove Shapechanger ability. 1d4+1 denizens encounter.",
+      "actions": [
+        {
+          "name": "Shamble",
+          "type": "roleplay",
+          "description": "Move around warehouse moaning"
+        },
+        {
+          "name": "Defend Self",
+          "type": "combat",
+          "description": "Attack only if threatened"
+        }
+      ],
+      "intention": "Exist in confused state. Avoid pain.",
+      "target": "Survive in warehouse.",
+      "personality": "Pitiable. Confused. More instinct than the 'successful' denizens. Defensive rather than aggressive."
+    },
+    
+    {
+      "name": "Ochre Jelly Amalgamation",
+      "desc": "Horrifying fusion of multiple failed denizens merged into one ochre jelly mass. Found in Warehouse of Rejects.",
+      "stat": "Ochre Jelly (5e Monster Manual) - represents multiple denizens combined",
+      "actions": [
+        {
+          "name": "Pseudopod",
+          "type": "combat",
+          "description": "Acid damage attack"
+        },
+        {
+          "name": "Split",
+          "type": "combat",
+          "description": "Can divide when damaged by slashing/lightning"
+        },
+        {
+          "name": "Engulf",
+          "type": "combat",
+          "description": "Surrounds and dissolves prey"
+        }
+      ],
+      "intention": "Attack and consume intruders.",
+      "target": "Feed on organic matter.",
+      "personality": "Tormented fusion of multiple consciousness fragments. Pure suffering and hunger. More aggressive than normal ochre jelly."
+    }
+  ]
