@@ -1,0 +1,255 @@
+{
+  "model": "all-mpnet-base-v2",
+  "dimensions": 768,
+  "databases": {
+    "campaign": {
+      "database": "campaign",
+      "collections": {
+        "venues": {
+          "count": 19,
+          "fields": [
+            "NPCs",
+            "connectVenues",
+            "envDesc",
+            "name",
+            "storyDesc"
+          ]
+        },
+        "stages": {
+          "count": 3,
+          "fields": [
+            "envDesc",
+            "name",
+            "startNarrative",
+            "startVenue",
+            "storyDesc",
+            "venues"
+          ]
+        },
+        "stories": {
+          "count": 1,
+          "fields": [
+            "mapDesc",
+            "name",
+            "objective",
+            "outline",
+            "startNarrative"
+          ]
+        },
+        "NPCs": {
+          "count": 14,
+          "fields": [
+            "desc",
+            "intention",
+            "name",
+            "personality",
+            "stat",
+            "target"
+          ]
+        }
+      },
+      "needs_manual_indexes": true
+    },
+    "5e-database": {
+      "database": "5e-database",
+      "collections": {
+        "2014-weapon-properties": {
+          "count": 11,
+          "fields": [
+            "desc",
+            "name"
+          ]
+        },
+        "2014-skills": {
+          "count": 18,
+          "fields": [
+            "desc",
+            "name"
+          ]
+        },
+        "2014-monsters": {
+          "count": 334,
+          "fields": [
+            "alignment",
+            "damage_immunities",
+            "desc",
+            "hit_dice",
+            "hit_points_roll",
+            "languages",
+            "name",
+            "size",
+            "subtype",
+            "type"
+          ]
+        },
+        "2014-subclasses": {
+          "count": 12,
+          "fields": [
+            "desc",
+            "name",
+            "subclass_flavor",
+            "subclass_levels"
+          ]
+        },
+        "2014-traits": {
+          "count": 38,
+          "fields": [
+            "desc",
+            "name"
+          ]
+        },
+        "2014-equipment": {
+          "count": 237,
+          "fields": [
+            "category_range",
+            "name",
+            "weapon_category",
+            "weapon_range"
+          ]
+        },
+        "2014-rules": {
+          "count": 6,
+          "fields": [
+            "desc",
+            "name"
+          ]
+        },
+        "2014-magic-schools": {
+          "count": 8,
+          "fields": [
+            "desc",
+            "name"
+          ]
+        },
+        "2014-conditions": {
+          "count": 15,
+          "fields": [
+            "desc",
+            "name"
+          ]
+        },
+        "2014-backgrounds": {
+          "count": 1,
+          "fields": [
+            "name"
+          ]
+        },
+        "2014-equipment-categories": {
+          "count": 39,
+          "fields": [
+            "name"
+          ]
+        },
+        "2014-alignments": {
+          "count": 9,
+          "fields": [
+            "abbreviation",
+            "desc",
+            "name"
+          ]
+        },
+        "2014-features": {
+          "count": 407,
+          "fields": [
+            "desc",
+            "name"
+          ]
+        },
+        "2014-feats": {
+          "count": 1,
+          "fields": [
+            "desc",
+            "name"
+          ]
+        },
+        "2014-ability-scores": {
+          "count": 6,
+          "fields": [
+            "desc",
+            "full_name",
+            "name"
+          ]
+        },
+        "2014-subraces": {
+          "count": 4,
+          "fields": [
+            "desc",
+            "name"
+          ]
+        },
+        "2014-races": {
+          "count": 9,
+          "fields": [
+            "age",
+            "alignment",
+            "language_desc",
+            "name",
+            "size",
+            "size_description"
+          ]
+        },
+        "2014-damage-types": {
+          "count": 13,
+          "fields": [
+            "desc",
+            "name"
+          ]
+        },
+        "2014-classes": {
+          "count": 12,
+          "fields": [
+            "class_levels",
+            "name",
+            "spells"
+          ]
+        },
+        "2014-spells": {
+          "count": 319,
+          "fields": [
+            "attack_type",
+            "casting_time",
+            "components",
+            "desc",
+            "duration",
+            "higher_level",
+            "material",
+            "name",
+            "range"
+          ]
+        },
+        "2014-languages": {
+          "count": 16,
+          "fields": [
+            "desc",
+            "name",
+            "script",
+            "type",
+            "typical_speakers"
+          ]
+        },
+        "2014-magic-items": {
+          "count": 362,
+          "fields": [
+            "desc",
+            "name"
+          ]
+        },
+        "2014-rule-sections": {
+          "count": 33,
+          "fields": [
+            "desc",
+            "name"
+          ]
+        },
+        "2014-proficiencies": {
+          "count": 117,
+          "fields": [
+            "name",
+            "type"
+          ]
+        }
+      },
+      "needs_manual_indexes": true
+    }
+  }
+}
