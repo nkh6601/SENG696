@@ -13,22 +13,22 @@ check_difficulty:
 
 good_action_result:
   description: >
-    Based on the dungeons and dragons 5E 2014 rule, {campaign} information, and current game status, evaluate the potetntial result of the success action, which should be positive to {player}. 
+    Combining the dungeons and dragons 5E 2014 rule, {campaign} information, current game status and common sense, creates a detailed result of the success action, which should be positive to {player}. 
     Descript the impacts of the success {player}'s action on {player}, other characters, environment, story, etc. 
   expected_output: >
     A JSON format data, which include:
     - A text descript the impacts of the success {player}'s action
     - A reasoning about the positive impacts.
-    - The time of the action used.
+    - The estimated time of the action used.
   agent: judge
 
 bad_action_result:
   description: >
-    Based on the dungeons and dragons 5E 2014 rule, {campaign} information, and current game status, evaluate the potetntial result of the failure action, which should be negative to {player}. 
+    Combining the dungeons and dragons 5E 2014 rule, {campaign} information, current game status and common sense, creates a detailed result of the success action, which should be negative to {player}. 
     Descript the impacts of the failure {player}'s action on {player}, other characters, environment, story, etc. 
   expected_output: >
     A JSON format data, which include:
     - A text descript the impacts of the failure {player}'s action
     - A reasoning about the negative impacts.
-    - The time of the action used.
+    - The estimated time of the action used.
   agent: judge

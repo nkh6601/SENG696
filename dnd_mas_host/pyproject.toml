@@ -6,6 +6,9 @@ authors = [{ name = "Your Name", email = "you@example.com" }]
 requires-python = ">=3.10,<3.14"
 dependencies = [
     "crewai[google-genai,tools]==1.5.0",
+    "PySimpleGUI>=4.60.0",
+    "pymongo>=4.0.0",
+    "sentence-transformers>=2.0.0",
 ]
 
 [project.scripts]
@@ -13,6 +16,7 @@ kickoff = "dnd_mas_host.main:kickoff"
 run_crew = "dnd_mas_host.main:kickoff"
 plot = "dnd_mas_host.main:plot"
 run_with_trigger = "dnd_mas_host.main:run_with_trigger"
+gui = "dnd_mas_host.interface.gui_interface:main"
 
 [build-system]
 requires = ["hatchling"]

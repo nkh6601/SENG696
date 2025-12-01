@@ -2,7 +2,14 @@
   "permissions": {
     "allow": [
       "Bash(powershell:*)",
-      "Bash(xxd:*)"
+      "Bash(xxd:*)",
+      "Bash(dir:*)",
+      "Search(*)",
+      "Search(pattern:*)",
+      "Search(pattern:*, include:*)",
+      "WebFetch(domain:*)",
+      "Bash(crewai --help:*)",
+      "Bash(crewai flow --help:*)"
     ],
     "deny": [],
     "ask": []
