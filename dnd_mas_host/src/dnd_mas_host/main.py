@@ -163,6 +163,12 @@ class HostFlow(Flow[HostState]):
 
         # Create and run NarratorFlow (validation phase) - async call
         narrator_flow = NarratorFlow()
+
+        # Create and inject GameStateSearchTool
+        from dnd_mas_host.tools.mongodb_vector_tools import GameStateSearchTool
+        game_state_tool = GameStateSearchTool(self.state)
+        narrator_flow.tools.append(game_state_tool)
+
         print(f"[DEBUG] Calling narrator_flow.kickoff_async()...")
 
         await narrator_flow.kickoff_async(inputs={
@@ -227,6 +233,12 @@ class HostFlow(Flow[HostState]):
 
         # Create and run JudgeFlow (difficulty assessment phase) - async call
         judge_flow = JudgeFlow()
+
+        # Create and inject GameStateSearchTool
+        from dnd_mas_host.tools.mongodb_vector_tools import GameStateSearchTool
+        game_state_tool = GameStateSearchTool(self.state)
+        judge_flow.tools.append(game_state_tool)
+
         await judge_flow.kickoff_async(inputs={
             "campaign": self.state.campaign,
             "player": self.state.player,
@@ -300,6 +312,12 @@ class HostFlow(Flow[HostState]):
 
         # Create and run JudgeFlow (consequence evaluation phase) - async call
         judge_flow = JudgeFlow()
+
+        # Create and inject GameStateSearchTool
+        from dnd_mas_host.tools.mongodb_vector_tools import GameStateSearchTool
+        game_state_tool = GameStateSearchTool(self.state)
+        judge_flow.tools.append(game_state_tool)
+
         await judge_flow.kickoff_async(inputs={
             "campaign": self.state.campaign,
             "player": self.state.player,
@@ -377,6 +395,12 @@ class HostFlow(Flow[HostState]):
 
         # Create and run NarratorFlow (narrative generation phase) - async call
         narrator_flow = NarratorFlow()
+
+        # Create and inject GameStateSearchTool
+        from dnd_mas_host.tools.mongodb_vector_tools import GameStateSearchTool
+        game_state_tool = GameStateSearchTool(self.state)
+        narrator_flow.tools.append(game_state_tool)
+
         await narrator_flow.kickoff_async(inputs={
             "campaign": self.state.campaign,
             "player": self.state.player,

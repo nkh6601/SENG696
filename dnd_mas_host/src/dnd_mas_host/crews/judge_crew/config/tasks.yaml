@@ -9,6 +9,13 @@ check_feasibility:
     Player: {player}
     Action Details: {action}
 
+    TOOL USAGE GUIDANCE:
+    - Use GameStateSearchTool to check player's resources (spell slots, inventory, HP, conditions)
+    - Use SpellVectorSearchTool to verify spell components, casting time, range if casting spell
+    - Use ClassVectorSearchTool to verify class feature availability
+    - Use RuleVectorSearchTool to verify action economy, movement rules, combat rules
+    - Use EquipmentVectorSearchTool to verify required equipment availability
+
     Consider the following aspects:
     - Action Economy: Does the player have the action/bonus action/reaction available?
     - Spell Components: For spells, are verbal, somatic, and material components available?
@@ -39,6 +46,13 @@ assign_difficulty:
     Campaign: {campaign}
     Player: {player}
     Action Details: {action}
+
+    TOOL USAGE GUIDANCE:
+    - Use MonsterVectorSearchTool to retrieve enemy stats (AC, HP, abilities) if action involves combat
+    - Use VenueVectorSearchTool to understand environmental modifiers (terrain, lighting, hazards)
+    - Use GameStateSearchTool to check player's current HP, conditions affecting difficulty
+    - Use RuleVectorSearchTool to reference official DC guidelines for similar actions
+    - Use ConditionVectorSearchTool to apply advantage/disadvantage from conditions
 
     The difficulty level is indicated by a number between -1 to 21:
     - -1: Automatically succeeds (no check needed)
@@ -79,6 +93,13 @@ evaluate_consequence:
     Player: {player}
     Action Details: {action}
     Roll Result: {roll}
+
+    TOOL USAGE GUIDANCE:
+    - Use MonsterVectorSearchTool to retrieve damage dice, HP, resistances for combat consequences
+    - Use SpellVectorSearchTool to retrieve spell damage, duration, effects
+    - Use ConditionVectorSearchTool to determine condition effects to apply (blinded, stunned, etc.)
+    - Use GameStateSearchTool to get current HP for damage calculation
+    - Use RuleVectorSearchTool to verify combat damage rules, death saves, healing rules
 
     Based on the success/failure outcome, determine:
     - HP changes (damage dealt/taken, healing)

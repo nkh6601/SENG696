@@ -10,6 +10,12 @@ validate_prompt:
     Current Venue: {current_venue}
     Player's Prompt: "{prompt}"
 
+    TOOL USAGE GUIDANCE:
+    - Use VenueVectorSearchTool to verify current venue details and connected venues
+    - Use NPCVectorSearchTool to verify NPCs mentioned in prompt are present in venue
+    - Use GameStateSearchTool to verify items/equipment referenced are in inventory
+    - Use StageVectorSearchTool to verify actions align with current story stage
+
     Determine:
     - Does the prompt conflict with current game state (e.g., referencing NPCs/item/location not present)?
     - Does the prompt request an impossible action (e.g., using items not in inventory)?
@@ -37,6 +43,11 @@ action_extract:
     Player: {player}
     Current Venue: {current_venue}
     Player's Prompt: "{prompt}"
+
+    TOOL USAGE GUIDANCE:
+    - Use VenueVectorSearchTool to retrieve venue context (environment, features, objects)
+    - Use NPCVectorSearchTool to retrieve target NPC details if action involves NPC interaction
+    - Use GameStateSearchTool to include player status in action context
 
     Extract the following components:
     - action_type: Type of action (e.g., attack, investigate, talk, move, cast_spell)
@@ -71,6 +82,13 @@ narrative_task:
     Action Taken: {action}
     Action Effect: {effect}
     NPC Reactions: {reactions}
+
+    TOOL USAGE GUIDANCE:
+    - Use VenueVectorSearchTool to retrieve venue descriptions for atmospheric details
+    - Use NPCVectorSearchTool to retrieve NPC personality, speech patterns for dialogue
+    - Use StageVectorSearchTool to retrieve story context for narrative alignment
+    - Use MonsterVectorSearchTool to retrieve monster descriptions for combat narratives
+    - Use SpellVectorSearchTool to retrieve spell descriptions for magic narratives
 
     Create a compelling 1-3 sentence narrative that:
     - Combines third-person descriptions with character dialogue where appropriate

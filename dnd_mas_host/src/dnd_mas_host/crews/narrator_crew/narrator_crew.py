@@ -65,6 +65,40 @@ class NarratorFlow(Flow[NarratorState]):
     def __init__(self):
         super().__init__()
         self.config_dir = Path(__file__).parent / "config"
+        self.tools = self._create_tools()
+
+    def _create_tools(self) -> list:
+        """Create all tools for Narrator agents"""
+        from dnd_mas_host.tools.mongodb_vector_tools import (
+            NPCVectorSearchTool,
+            VenueVectorSearchTool,
+            StageVectorSearchTool,
+            UniversalVectorSearchTool,
+            MonsterVectorSearchTool,
+            SpellVectorSearchTool,
+            RuleVectorSearchTool,
+            EquipmentVectorSearchTool,
+            ClassVectorSearchTool,
+            ConditionVectorSearchTool,
+            MagicItemVectorSearchTool
+        )
+
+        return [
+            # Campaign tools (primary for Narrator)
+            NPCVectorSearchTool(),
+            VenueVectorSearchTool(),
+            StageVectorSearchTool(),
+            UniversalVectorSearchTool(),
+
+            # 5E database tools (secondary, for validation/narrative enrichment)
+            MonsterVectorSearchTool(),
+            SpellVectorSearchTool(),
+            RuleVectorSearchTool(),
+            EquipmentVectorSearchTool(),
+            ClassVectorSearchTool(),
+            ConditionVectorSearchTool(),
+            MagicItemVectorSearchTool()
+        ]
 
     def _load_agent_config(self, agent_name: str) -> Agent:
         """Load agent configuration from agents.yaml"""
@@ -88,7 +122,8 @@ class NarratorFlow(Flow[NarratorState]):
             backstory=config['backstory'],
             llm=LLM(model=model),
             verbose=True,
-            allow_delegation=False
+            allow_delegation=False,
+            tools=self.tools
         )
 
     def _load_task_config(self, task_name: str, agent: Agent, output_model: BaseModel) -> Task:
