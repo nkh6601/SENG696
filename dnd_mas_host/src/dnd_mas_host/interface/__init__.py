@@ -6,5 +6,7 @@ with the CrewAI HostFlow orchestration system.
 """
 
 from .message_types import MessageType
+from .interface_agent import InterfaceAgent
+from .models import ConversationEntry, InterfaceState
 
-__all__ = ["MessageType"]
+__all__ = ["MessageType", "InterfaceAgent", "ConversationEntry", "InterfaceState"]

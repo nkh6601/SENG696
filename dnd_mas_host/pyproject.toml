@@ -16,7 +16,7 @@ kickoff = "dnd_mas_host.main:kickoff"
 run_crew = "dnd_mas_host.main:kickoff"
 plot = "dnd_mas_host.main:plot"
 run_with_trigger = "dnd_mas_host.main:run_with_trigger"
-gui = "dnd_mas_host.interface.gui_interface:main"
+gui = "dnd_mas_host.interface.interface_agent:main"
 
 [build-system]
 requires = ["hatchling"]

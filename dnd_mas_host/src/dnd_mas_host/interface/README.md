@@ -13,9 +13,11 @@ Communication between threads uses thread-safe `queue.Queue` objects.
 
 ## Files
 
-- **`gui_interface.py`**: Main GUI class (`DnDGUIInterface`) with PySimpleGUI window and event handling
+- **`interface_agent.py`**: Main GUI class (`InterfaceAgent`) with PySimpleGUI window and event handling
+- **`models.py`**: Pydantic data models (`ConversationEntry`, `InterfaceState`)
 - **`flow_runner.py`**: Background thread function that executes HostFlow
 - **`message_types.py`**: Message protocol definitions for inter-thread communication
+- **`gui_interface.py`**: Legacy GUI class (deprecated, use `interface_agent.py`)
 - **`__init__.py`**: Package initialization
 
 ## Prerequisites
@@ -36,13 +38,15 @@ Communication between threads uses thread-safe `queue.Queue` objects.
 
 ### Option 1: Via project script (recommended)
 ```bash
-python -m dnd_mas_host.interface.gui_interface
+python -m dnd_mas_host.interface.interface_agent
 ```
 
 ### Option 2: Via crewai command (after installation)
 ```bash
 crewai gui
 ```
+
+Note: The `crewai gui` command now uses the new `InterfaceAgent` class.
 
 ## Using the GUI
 
@@ -67,7 +71,8 @@ crewai gui
 
 ### GUI Elements
 
-- **Character Status**: Shows HP and current location
+- **Character Status**: Shows player name, class, HP, location, stage, skills, and items
+- **NPCs in Area**: Displays NPCs present in current venue with their health
 - **Adventure Log**: Chat history with labeled messages
   - `[NARRATOR]`: Story narration
   - `[YOU]`: Your actions
@@ -155,10 +160,13 @@ The GUI communicates with the Flow thread via standardized messages:
 ## Development Notes
 
 ### Modifying the GUI Layout
-Edit `gui_interface.py` → `initialize_gui()` method
+Edit `interface_agent.py` → `initialize_gui()` method
 
 ### Changing Message Protocol
 Edit `message_types.py` → Add new `MessageType` enum values
+
+### Adding New Data Models
+Edit `models.py` → Add new Pydantic models for structured data
 
 ### Modifying Flow Integration
 Edit `main.py` → `perform_check()` method for difficulty check logic

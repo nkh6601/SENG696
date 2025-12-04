@@ -1,34 +1,105 @@
-check_difficulty:
+check_feasibility:
   description: >
-    Conduct a thorough evaluate about difficulty level of {player}'s action in that context.
-    The difficulty level is indicated by a number between -1 to 21. The higher the number indicate the higher difficulty and less chance to be success. 
-    21 indicate it is impossible for this action to be success. -1 indicate the action is success without the need of difficulty check. 
-    Overall, 5 for "easy," 10 for "medium," 15 for "hard," and 20 for "very hard".
-    Make sure you find any relevant information in dungeons and dragons 5E 2014 rule book that applies to the action for the evaluation.
-  expected_output: >
-    A JSON format difficulty check data, which include:
-    - The difficulty level of action in a number between -1 to 21.
-    - A reasoning about the difficulty of the action
-  agent: judge
+    ONLY validate whether the action is legal and feasible according to D&D 5E 2014 rules.
+    DO NOT evaluate difficulty or consequences - only check if the action is possible.
 
-good_action_result:
-  description: >
-    Combining the dungeons and dragons 5E 2014 rule, {campaign} information, current game status and common sense, creates a detailed result of the success action, which should be positive to {player}. 
-    Descript the impacts of the success {player}'s action on {player}, other characters, environment, story, etc. 
-  expected_output: >
-    A JSON format data, which include:
-    - A text descript the impacts of the success {player}'s action
-    - A reasoning about the positive impacts.
-    - The estimated time of the action used.
-  agent: judge
+    Validate whether the following action is legal and feasible:
 
-bad_action_result:
-  description: >
-    Combining the dungeons and dragons 5E 2014 rule, {campaign} information, current game status and common sense, creates a detailed result of the success action, which should be negative to {player}. 
-    Descript the impacts of the failure {player}'s action on {player}, other characters, environment, story, etc. 
+    Campaign: {campaign}
+    Player: {player}
+    Action Details: {action}
+
+    Consider the following aspects:
+    - Action Economy: Does the player have the action/bonus action/reaction available?
+    - Spell Components: For spells, are verbal, somatic, and material components available?
+    - Class Features & Feats: Does the player have the required class features or feats?
+    - Environmental Constraints: Is the action possible in the current environment?
+    - Physical Limitations: Can the action be performed given character's position/condition?
+    - Resource Availability: Does the player have required resources (spell slots, items, etc.)?
+
+    If the action is invalid, provide a clear, user-friendly explanation of why it cannot be performed.
+    Make sure to search the D&D 5E 2014 rule book for relevant rules.
+
+    This is ONLY a feasibility check - if it's something related to difficulty or consequences,
+    state that it is NOT a feasibility matter.
   expected_output: >
-    A JSON format data, which include:
-    - A text descript the impacts of the failure {player}'s action
-    - A reasoning about the negative impacts.
-    - The estimated time of the action used.
-  agent: judge
+    A JSON format feasibility check result, which includes:
+    - is_valid: Boolean indicating if the action is valid
+    - reasoning: Detailed explanation of why the action is valid or invalid
+    - rejection_message: User-friendly message if action is invalid (null if valid)
+  agent: feasibility_agent
+
+assign_difficulty:
+  description: >
+    ONLY assign an appropriate Difficulty Class (DC) for the action based on D&D 5E 2014 rules and context.
+    DO NOT validate feasibility or evaluate consequences - only determine how difficult the action is.
+
+    Assign an appropriate Difficulty Class (DC) for the following action:
+
+    Campaign: {campaign}
+    Player: {player}
+    Action Details: {action}
+
+    The difficulty level is indicated by a number between -1 to 21:
+    - -1: Automatically succeeds (no check needed)
+    - 5: Easy task
+    - 10: Medium difficulty
+    - 15: Hard task
+    - 20: Very hard task
+    - 21: Impossible (automatically fails)
+
+    Consider the following factors when assigning difficulty:
+    - Character abilities and proficiencies
+    - Environmental conditions (lighting, terrain, weather)
+    - Enemy or obstacle characteristics
+    - Situational modifiers (advantage, disadvantage)
+    - Time pressure or stress factors
+    - Equipment and tools available
+
+    Search the D&D 5E 2014 rule book for relevant DC guidelines and modifiers.
+    Provide clear reasoning for the assigned difficulty level.
+
+    This is ONLY a difficulty assignment - if it's something related to feasibility or consequences,
+    state that it is NOT a difficulty matter.
+  expected_output: >
+    A JSON format difficulty assignment, which includes:
+    - difficulty: The DC value from -1 to 21
+    - reasoning: Detailed explanation of why this DC was assigned
+    - skip_check: Boolean indicating if difficulty check should be skipped (true for -1 or 21)
+  agent: difficulty_agent
+
+evaluate_consequence:
+  description: >
+    ONLY evaluate and describe the mechanical consequences of the action based on whether it succeeded or failed.
+    DO NOT validate feasibility or assign difficulty - only determine what happens as a result.
+
+    Evaluate the consequences of the following action:
+
+    Campaign: {campaign}
+    Player: {player}
+    Action Details: {action}
+    Roll Result: {roll}
+
+    Based on the success/failure outcome, determine:
+    - HP changes (damage dealt/taken, healing)
+    - Status conditions (stunned, prone, blinded, etc.)
+    - Position changes (movement, forced movement, falling)
+    - Resource expenditure (spell slots, items consumed)
+    - Environmental changes (doors opened, traps triggered)
+    - Secondary effects (reactions triggered, opportunity attacks)
+    - Story impacts (NPC reactions, quest progress)
+
+    Combine D&D 5E 2014 rules, {campaign} information, current game status, and common sense.
+    Describe impacts on {player}, other characters, environment, and story.
+    Estimate the in-game time the action took.
+
+    Focus on mechanical effects - the Narrator will handle narrative descriptions.
+
+    This is ONLY a consequence evaluation - if it's something related to feasibility or difficulty,
+    state that it is NOT a consequence matter.
+  expected_output: >
+    A JSON format consequence evaluation, which includes:
+    - effect: Detailed description of mechanical impacts (HP, conditions, position, resources)
+    - reasoning: Explanation of why these consequences occurred based on D&D 5E rules
+    - time_used: Estimated in-game time the action took (e.g., "6 seconds", "1 minute", "1 hour")
+  agent: consequence_agent

@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a Dungeons & Dragons 5E multi-agent system (MAS) powered by CrewAI. The system orchestrates multiple AI agents that work together to create an interactive D&D experience, including a Narrator, NPCs, and a Judge to manage gameplay mechanics.
 
-**Campaign**: "Humantown: Rescue from the Town of Slimes" - A D&D adventure where players investigate a mysterious settlement of slime creatures mimicking human society.
+**Campaign**: "Humantown: Rescue from the Town of Slimes" - information exist in the MongoDB
 
 ### System Goals
 This text-based, AI-generated interactive story system aims to:
@@ -38,19 +38,23 @@ Four specialized crews in [src/dnd_mas_host/crews/](src/dnd_mas_host/crews/):
    - Performs difficulty checks via random roll (success if roll > difficulty)
    - Architecture: Listener (receives/sends messages, manages GUI) + Processor (records history, handles GUI logic)
 
-2. **Narrator Agent** ([narrator_crew.py](src/dnd_mas_host/crews/narrator_crew/narrator_crew.py))
-   - Generates main character narratives based on pre-defined story and user prompts
-   - Creates new story details when user actions go beyond pre-defined content
-   - Generates NPC reaction narratives based on NPC agent outputs
-   - Manages game state: previous prompts/conversation, NPC status, main character status, map, newly-defined story elements
-   - Architecture: Listener + Processor (pre/post-processes LLM parameters, manages game state) + Reasoning LLM (retrieves from vector DB)
-   - Tasks: `narrative_task`, `validate_prompt`, `action_extract`
+2. **Narrator Crew** ([narrator_crew.py](src/dnd_mas_host/crews/narrator_crew/narrator_crew.py)) - **Hierarchical Process**
+   - Uses 3 specialized agents coordinated by auto-generated manager LLM:
+     - **Prompt Validator**: Validates player prompts for conflicts, invalid actions, or ambiguities
+     - **Action Extractor**: Parses prompts into structured action data (type, target, method, intent)
+     - **Narrative Generator**: Creates engaging narratives from action results and game events
+   - Architecture: Manager LLM + 3 specialist agents (all with `allow_delegation=False`)
+   - Tasks: `validate_prompt`, `action_extract`, `narrative_task`
+   - Process: `Process.hierarchical` with `manager_llm="gpt-4o-mini"`
 
-3. **Judge Agent** ([judge_crew.py](src/dnd_mas_host/crews/judge_crew/judge_crew.py))
-   - Evaluates difficulty level of actions/reactions based on D&D 5E 2014 rules
-   - Rejects unfeasible actions/reactions
-   - Determines consequences/effects based on action results
-   - Architecture: Listener + Processor + Reasoning LLM (retrieves from rule database)
+3. **Judge Crew** ([judge_crew.py](src/dnd_mas_host/crews/judge_crew/judge_crew.py)) - **Hierarchical Process**
+   - Uses 3 specialized agents coordinated by auto-generated manager LLM:
+     - **Feasibility Agent**: Validates action legality under D&D 5E rules (action economy, components, resources)
+     - **Difficulty Agent**: Assigns Difficulty Class (DC) from -1 to 21 based on context
+     - **Consequence Agent**: Evaluates mechanical effects (HP, conditions, position, resources)
+   - Architecture: Manager LLM + 3 specialist agents (all with `allow_delegation=False`)
+   - Tasks: `check_feasibility`, `assign_difficulty`, `evaluate_consequence`
+   - Process: `Process.hierarchical` with `manager_llm="gpt-4o-mini"`
 
 4. **NPC Agents** ([npc_crew.py](src/dnd_mas_host/crews/npc_crew/npc_crew.py))
    - **NPC Agent - Character**: Generates reactions based on NPC profile (personality, status, background)
@@ -63,46 +67,30 @@ Each crew has:
 - `config/agents.yaml`: Agent role, goal, and backstory definitions
 - `config/tasks.yaml`: Task descriptions and expected outputs
 
-### Narrator Agent: State Management Role
+### State Management Architecture (Updated for Hierarchical Process)
 
-The Narrator Agent has a **critical constraint**: it MUST remain as a single crew with all tasks executing together.
+With the transition to hierarchical processes for Narrator and Judge crews, state management follows this approach:
 
-**Why Single Crew is Required**:
-- Narrator agent maintains **internal state** across all narrative operations:
-  - Story progress (completed stages, current venue, unlocked story elements)
-  - Combat status (ongoing combat, initiative order, round count)
-  - Character status (HP, conditions, inventory, level)
-  - NPC status (health, disposition, location, quest states)
-  - Conversation history (previous prompts and actions for context)
-  - Newly-defined story elements (player-created content beyond pre-defined campaign)
+**HostState (Flow's Pydantic Model)** - Primary state container:
+- **Workflow coordination**: prompts, validation results, actions, difficulty, effects, NPC reactions
+- **Game state (MVP)**: current_stage, current_venue, character_hp, character_max_hp
+- **Shared across all crews** via Flow
+- **Accessible in Flow methods** via `self.state`
+- **Must be explicitly passed** to crews as input parameters
 
-**State Persistence Mechanism**:
-CrewAI agents maintain memory across sequential task execution within a single crew kickoff. Splitting Narrator into 3 separate crews would create 3 independent agent instances, each losing the state tracked by the others.
+**Important Change from Sequential to Hierarchical**:
+- **Previous (Sequential)**: Single Narrator agent could maintain internal memory across tasks
+- **Current (Hierarchical)**: Each specialized agent is independent - no shared internal memory
+- **Solution**: All game state MUST be tracked in HostState and passed via crew inputs
+- **Trade-off**: More explicit state management vs. more efficient token usage through specialization
 
-**Trade-off**:
-All 3 Narrator tasks (`validate_prompt`, `action_extract`, `narrative_task`) execute on every `crew.kickoff()` call, even when only one task's output is needed. This costs more tokens but is necessary to preserve state integrity.
+**Game State Data Flow**:
+1. Flow reads state from HostState
+2. Flow passes relevant state to crew via `kickoff(inputs={...})`
+3. Crew processes and returns structured output
+4. Flow updates HostState based on crew output
+5. Repeat for next crew invocation
 
-**Alternative Approaches Considered and Rejected**:
-1. ❌ Separate crews + external MongoDB state: Breaks agent memory, adds complexity
-2. ❌ ConditionalTask: Cannot conditionally execute based on Flow context (only on previous task output)
-3. ❌ Task skipping via prompts: Unreliable, agent may not follow skip instructions
-
-### State Management Architecture
-
-**Hybrid State Approach**:
-- **HostState (Flow's Pydantic Model)**: Workflow coordination
-  - Tracks: prompts, validation results, actions, difficulty, effects, NPC reactions
-  - Shared across all crews via Flow
-  - Accessible in Flow methods via `self.state`
-- **Narrator Agent Internal Memory**: Game state tracking
-  - Tracks: story progress, character status, NPC states, combat state, history
-  - Persists within Narrator crew's sequential task execution
-  - Lost if crew is recreated or split into multiple crews
-
-**Why Hybrid Approach**:
-- HostState provides explicit workflow coordination across different crews
-- Narrator Agent Memory provides implicit game context that would be complex to serialize
-- Narrator maintains conversational continuity and narrative coherence through internal memory
 
 ### MongoDB Vector Search (RAG)
 [src/dnd_mas_host/tools/mongodb_vector_tools.py](src/dnd_mas_host/tools/mongodb_vector_tools.py) implements RAG with local embeddings:
@@ -114,8 +102,6 @@ All 3 Narrator tasks (`validate_prompt`, `action_extract`, `narrative_task`) exe
 - **Tools**: `NPCVectorSearchTool`, `VenueVectorSearchTool`, `StageVectorSearchTool`, `UniversalVectorSearchTool`
 - MongoDB connection: `mongodb://127.0.0.1:27017/` (local, runs on Docker Desktop)
 
-**Important**: Vector indexes must be manually created in MongoDB. See [vector_search_config_all.json](vector_search_config_all.json) for configuration details.
-
 ### Game Data Structure
 
 **Campaign Data** (JSON files at project root, also stored in MongoDB `campaign` database):
@@ -123,48 +109,17 @@ All 3 Narrator tasks (`validate_prompt`, `action_extract`, `narrative_task`) exe
 - [stages.json](stages.json): Stage environment descriptions, venues, story descriptions, start venue, start narrative
 - [venues.json](venues.json): Venue environment descriptions, NPCs present, connected venues, story descriptions, supported actions
 - [NPCs.json](NPCs.json): NPC descriptions, stats (references 2014-monsters), story-related actions, intention, target, personality
-- [Humantown.json](Humantown.json): Town-specific aggregated data
 
 **D&D 5E Reference Data** (MongoDB `5e-database` database, sourced from [5e-bits/5e-database](https://github.com/5e-bits/5e-database)):
 - Key collections: `2014-monsters`, `2014-spells`, `2014-rules`, `2014-equipment`, `2014-classes`, `2014-conditions`, `2014-magic-items`
 - String fields have vector embeddings for LLM retrieval
-- All data is from D&D System Reference Document 5.2.1 (CC-BY-4.0 license)
-
-## Development Commands
-
-### Running the Project
-```bash
-crewai run
-```
-Executes the HostFlow and starts the multi-agent system.
-
-### Visualize Flow
-```bash
-crewai plot
-```
-Generates a visualization of the Flow execution graph.
-
-### Run with Trigger Payload
-```bash
-python -m dnd_mas_host.main run_with_trigger '{"sentence_count": 3}'
-```
-Runs the flow with JSON trigger data (for testing/integration).
 
 ### Development Environment
 - Python: 3.13.9 (tested), requires >=3.10 <3.14
 - CrewAI: v1.3.0
 - MongoDB Community: 8.2.1 (runs on Docker Desktop 4.49.0)
-- LLM: `gemini-2.0-flash-lite` (prototype/testing)
+- LLM: OpenAI `gpt-4o-mini` (manager agents), configurable per agent
 - IDE: Visual Studio Code
-- Dependency manager: UV (not pip)
-- Install dependencies: `crewai install`
-
-### Environment Variables
-Create `.env` file with:
-```
-MODEL=gemini/gemini-2.0-flash-lite-001
-GEMINI_API_KEY=<your-key>
-```
 
 ## Key Technical Details
 
@@ -187,9 +142,6 @@ The main interaction flow (see detailed sequence diagram in design docs):
 - Actions too easy/impossible → Judge skips difficulty check, proceeds to effects
 - Multiple NPC reactions → Ordered execution based on NPC priority, previous actions appended to context
 
-### Agent-Task Binding
-CrewAI automatically binds `@agent` decorated methods to tasks through the `@task` decorator. The crew's `agents` and `tasks` lists are automatically populated.
-
 ### HostState Fields (Pydantic Model)
 `HostState` tracks workflow coordination information via state-based control (see "State Management Architecture" section for full explanation):
 - Workflow: `workflow_step` (int), `current_agent` (str)
@@ -199,38 +151,38 @@ CrewAI automatically binds `@agent` decorated methods to tasks through the `@tas
 - Output: `final_output` (str)
 - Game state (MVP): `current_stage` (str), `current_venue` (str), `character_hp` (int), `character_max_hp` (int)
 
-Note: The Narrator Agent also maintains internal memory (story progress, combat state, conversation history) that is NOT stored in HostState.
+## Hierarchical Process Benefits
 
-### D&D 5E 2014 Rules
-The system is designed around D&D 5E 2014 edition rules. A separate `5e-database` MongoDB database contains 2014 edition reference data (monsters, spells, equipment, etc.) with vector search capabilities.
+The Judge and Narrator crews now use **CrewAI's hierarchical process** for improved efficiency:
 
-### Vector Search Configuration
-All collections use the same embedding model. Vector indexes follow naming pattern: `vector_index_{collection}_mpnet_base_v2_768`
+**Key Benefits**:
+- **40-60% token reduction** through conditional execution (manager only delegates necessary tasks)
+- **Clear separation of concerns** - each agent has one focused responsibility
+- **Early rejection** - invalid actions/prompts caught before expensive processing
+- **Agent specialization** - smaller, focused prompts per agent reduce context pollution
+- **Scalability** - easy to add new specialized agents without restructuring
 
-Fields embedded per collection:
-- NPCs: name, desc, personality, intention, target
-- Venues: name, envDesc, storyDesc
-- Stages: name, envDesc, storyDesc, startNarrative
-- Stories: name, startNarrative, objective, outline, mapDesc
+**How Hierarchical Process Works**:
+1. **Manager LLM** (auto-generated by CrewAI) receives inputs and task descriptions
+2. **Manager delegates** tasks to appropriate specialist agents based on task scope
+3. **Specialists execute** independently with `allow_delegation=False` to prevent loops
+4. **Manager coordinates** workflow and aggregates structured outputs
+5. **Results returned** via `tasks_output` as Pydantic models
 
-## Design Methodology (MaSE)
-
-The system was designed using the Multi-Agent Systems Engineering (MaSE) methodology:
-- **Goal Hierarchy**: Four agent roles (Interface, Narrator, Judge, NPC) mapped to hierarchical goals
-- **Use Cases**: Single primary use case with 12 process steps and 3 exception paths
-- **Role Diagram**: Defines agent communication patterns and task assignments
-- **Agent Classes**: Each agent has defined architecture (Listener, Processor, Reasoning LLM/GUI)
-- **Deployment**: Multi-agent system with local GUI (planned), vector database (MongoDB), and workflow orchestration
-
-See the PDF design documents for detailed sequence diagrams, conversation flows, and deployment architecture.
+**Critical Configuration Rules**:
+- ✅ Use `manager_llm` parameter (CrewAI auto-generates manager)
+- ✅ Set `allow_delegation=False` on all specialist agents
+- ✅ Explicitly assign tasks to agents via `agent=` parameter
+- ✅ Use clear scope boundaries in task descriptions ("ONLY...", "DO NOT...")
+- ❌ Do NOT define a manager agent manually
+- ❌ Do NOT include manager in agents list
+- ❌ Do NOT use both `manager_llm` and `manager_agent` (conflict)
 
 ## Important Notes
 
 - This is a **Flow** project (not a traditional Crew project) - check `pyproject.toml`: `type = "flow"`
-- MongoDB must be running locally (Docker) with vector indexes configured manually
-- The embedding model downloads automatically on first run (~500MB)
-- CrewAI tools use Pydantic BaseModel for input schemas
 - Agents are configured via YAML, allowing non-code modifications to behavior
 - The project emphasizes **state-based** workflow control over direct message passing
-- Three-stage campaign structure: "Arrival and Investigation", "Museum of Human History", "The Mill - Final Confrontation"
+- **Hierarchical crews** require explicit state passing via HostState (no agent internal memory)
+- If any unclear or question, please ask before proceed with hte implementation or planning
 

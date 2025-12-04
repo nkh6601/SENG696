@@ -1,37 +1,94 @@
-narrative_task:
-  description: >
-    Review the campaign information and the {player}'s action result you got and expanding it into a 1-3 sentance of narrative.
-    The narrative may contain either the third person description, dialogue from {player}. Make sure the report is interesting and contains any and all relevant information from {campaign}.
-  expected_output: >
-    A JSON format narrative data, which include:
-    - A list of descriptions/dialogues with:
-      - The speaker. "Narrator" in the case of third person description, and {player} if dialogue.
-      - The narrative. 1-2 sentance of descriptions/dialogues.
-  agent: narrator
-
 validate_prompt:
   description: >
-    Review the {campaign} information, current game status, and the player's prompt you got to determine if any conflict or invalid information.
+    ONLY validate the player's prompt for conflicts, invalid actions, or ambiguities.
+    DO NOT extract actions or generate narratives - only check if the prompt is valid.
+
+    Review the following information to validate the player's prompt:
+
+    Campaign: {campaign}
+    Player: {player}
+    Current Venue: {current_venue}
+    Player's Prompt: "{prompt}"
+
+    Determine:
+    - Does the prompt conflict with current game state (e.g., referencing NPCs/item/location not present)?
+    - Does the prompt request an impossible action (e.g., using items not in inventory)?
+    - Is the prompt ambiguous or unclear to an extend largely affect understanding the action (needs clarification)?
+    - Does the prompt align with campaign story and current venue?
+
+    If invalid, provide a clear message stating the invalid reason of the action and ask for antoher prompt in one sentence.
+    If ambiguous, provide a clear message requesting clarification from the player in one sentence.
+    If valid, confirm the prompt can proceed to action extraction.
+
   expected_output: >
-    A JSON format data, which include:
-    - A boolean value indicate if the prompt valid.
-    - A reasoning about the boolean result.
-  agent: narrator
+    A JSON format validation result, which includes:
+    - valid: Boolean indicating if the prompt is valid
+    - message: Validation message or clarification request
+  agent: prompt_validator
 
 action_extract:
   description: >
-    Review the campaign information, current game status and the player's prompt you got to extract the action player want to preform in a plain and objective manner.
-    The action should contant all relevant information from the prompt and the context to clearly descript the action.
-  expected_output: >
-    A JSON format data, which include:
-    - A text description of the player's proposed action and all relevant information, if applicable: the environment, the target, player status, etc.
-  agent: narrator
+    ONLY extract and structure the action from the player's prompt.
+    DO NOT validate the prompt or generate narratives - only parse the action data.
 
-descript_environment:
-  description: >
-    Review the campaign information, current game status and the player's prompt you got to extract the action player want to preform in a plain and objective manner.
-    The action should contant all relevant information from the prompt and the context to clearly descript the action.
+    Extract structured action data from the following validated prompt:
+
+    Campaign: {campaign}
+    Player: {player}
+    Current Venue: {current_venue}
+    Player's Prompt: "{prompt}"
+
+    Extract the following components:
+    - action_type: Type of action (e.g., attack, investigate, talk, move, cast_spell)
+    - target: Target of the action (NPC, object, location)
+    - method: Method or approach (e.g., "sneak attack", "persuade", "use lockpick")
+    - intent: Player's stated or implied intent
+    - context: All relevant information (environment, player status, equipment used)
+
+    Be objective and factual - don't add narrative flourish or interpretation.
+    Include ALL relevant context needed for Judge and NPC agents to evaluate the action.
+
+    This is ONLY action extraction - if it's something related to validation or narrative,
+    state that it is NOT an action extraction matter.
   expected_output: >
-    A JSON format data, which include:
-    - A text description of the player's proposed action and all relevant information, if applicable: the environment, the target, player status, etc.
-  agent: narrator
+    A JSON format action extraction result, which includes:
+    - action_type: Type of action
+    - target: Target of the action
+    - method: Method or approach
+    - intent: Player's intent
+  agent: action_extractor
+
+narrative_task:
+  description: >
+    ONLY generate engaging narratives based on action results and game events.
+    DO NOT validate prompts or extract actions - only create the story narrative.
+
+    Generate narrative based on the following action results:
+
+    Campaign: {campaign}
+    Player: {player}
+    Current Venue: {current_venue}
+    Action Taken: {action}
+    Action Effect: {effect}
+    NPC Reactions: {reactions}
+
+    Create a compelling 1-3 sentence narrative that:
+    - Combines third-person descriptions with character dialogue where appropriate
+    - Weaves together action results, NPC reactions, and environmental changes
+    - Maintains consistency with campaign story and current venue
+    - Includes all relevant information from the action result
+    - Tracks story progress and character development
+    - Is vivid and immersive while staying concise
+
+    Format as a list of narrative segments, each with a speaker:
+    - "Narrator" for third-person descriptions
+    - Player name for player character dialogue
+    - NPC names for NPC dialogue
+
+    This is ONLY narrative generation - if it's something related to validation or action extraction,
+    state that it is NOT a narrative matter.
+  expected_output: >
+    A JSON format narrative data, which includes:
+    - narrative: Generated narrative text
+    - state_updates: Game state updates (HP changes, venue changes, NPC status, etc.)
+  agent: narrative_generator

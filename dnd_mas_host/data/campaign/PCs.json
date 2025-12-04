@@ -1,0 +1,1307 @@
+[
+  {
+    "index": "aldric-stormward",
+    "name": "Aldric Stormward",
+    "player_character": true,
+    "character_type": "main_character",
+    "size": "Medium",
+    "type": "humanoid",
+    "subtype": "human",
+    "alignment": "lawful good",
+    "class": "Fighter",
+    "subclass": "Eldritch Knight",
+    "level": 5,
+    "background": "Soldier",
+    "armor_class": [
+      {
+        "type": "plate",
+        "value": 18
+      }
+    ],
+    "hit_points": 44,
+    "hit_dice": "5d10",
+    "hit_points_roll": "5d10+10",
+    "speed": {
+      "walk": "30 ft."
+    },
+    "strength": 16,
+    "dexterity": 14,
+    "constitution": 14,
+    "intelligence": 13,
+    "wisdom": 10,
+    "charisma": 10,
+    "proficiencies": [
+      {
+        "value": 6,
+        "proficiency": {
+          "index": "saving-throw-str",
+          "name": "Saving Throw: STR"
+        }
+      },
+      {
+        "value": 5,
+        "proficiency": {
+          "index": "saving-throw-con",
+          "name": "Saving Throw: CON"
+        }
+      },
+      {
+        "value": 6,
+        "proficiency": {
+          "index": "skill-athletics",
+          "name": "Skill: Athletics"
+        }
+      },
+      {
+        "value": 3,
+        "proficiency": {
+          "index": "skill-intimidation",
+          "name": "Skill: Intimidation"
+        }
+      },
+      {
+        "value": 3,
+        "proficiency": {
+          "index": "skill-perception",
+          "name": "Skill: Perception"
+        }
+      },
+      {
+        "value": 3,
+        "proficiency": {
+          "index": "skill-survival",
+          "name": "Skill: Survival"
+        }
+      }
+    ],
+    "damage_vulnerabilities": [],
+    "damage_resistances": [],
+    "damage_immunities": [],
+    "condition_immunities": [],
+    "senses": {
+      "passive_perception": 13
+    },
+    "languages": "Common",
+    "proficiency_bonus": 3,
+    "special_abilities": [
+      {
+        "name": "Fighting Style: Dueling",
+        "desc": "+2 to damage rolls when wielding a melee weapon in one hand and no other weapons."
+      },
+      {
+        "name": "Second Wind",
+        "desc": "You have a limited well of stamina that you can draw on. On your turn, you can use a bonus action to regain 1d10+5 hit points. Once you use this feature, you must finish a short or long rest before you can use it again.",
+        "usage": {
+          "type": "per short rest",
+          "times": 1
+        }
+      },
+      {
+        "name": "Action Surge",
+        "desc": "You can push yourself beyond your normal limits for a moment. On your turn, you can take one additional action. Once you use this feature, you must finish a short or long rest before you can use it again.",
+        "usage": {
+          "type": "per short rest",
+          "times": 1
+        }
+      },
+      {
+        "name": "Extra Attack",
+        "desc": "You can attack twice, instead of once, whenever you take the Attack action on your turn."
+      },
+      {
+        "name": "Spellcasting",
+        "desc": "You have learned to cast spells. Intelligence is your spellcasting ability. Spell save DC = 11, Spell attack modifier = +3",
+        "spellcasting": {
+          "ability": {
+            "index": "int",
+            "name": "INT"
+          },
+          "dc": 11,
+          "modifier": 3,
+          "spell_slots": {
+            "1": 3
+          },
+          "cantrips_known": 2,
+          "spells_known": 3
+        }
+      },
+      {
+        "name": "Weapon Bond",
+        "desc": "You learn a ritual that creates a magical bond between yourself and one weapon. You can't be disarmed of that weapon unless you are incapacitated."
+      }
+    ],
+    "spells": [
+      {
+        "level": 0,
+        "name": "Blade Ward",
+        "school": "abjuration"
+      },
+      {
+        "level": 0,
+        "name": "Prestidigitation",
+        "school": "transmutation"
+      },
+      {
+        "level": 1,
+        "name": "Shield",
+        "school": "abjuration",
+        "casting_time": "1 reaction"
+      },
+      {
+        "level": 1,
+        "name": "Absorb Elements",
+        "school": "abjuration",
+        "casting_time": "1 reaction"
+      },
+      {
+        "level": 1,
+        "name": "Magic Missile",
+        "school": "evocation"
+      }
+    ],
+    "actions": [
+      {
+        "name": "Multiattack",
+        "multiattack_type": "actions",
+        "desc": "Aldric makes two melee attacks.",
+        "actions": [
+          {
+            "action_name": "Longsword",
+            "count": 2,
+            "type": "melee"
+          }
+        ]
+      },
+      {
+        "name": "Longsword",
+        "desc": "Melee Weapon Attack: +6 to hit, reach 5 ft., one target. Hit: 9 (1d8 + 5) slashing damage, or 10 (1d10 + 5) slashing damage if used with two hands.",
+        "attack_bonus": 6,
+        "damage": [
+          {
+            "damage_type": {
+              "index": "slashing",
+              "name": "Slashing"
+            },
+            "damage_dice": "1d8+5"
+          }
+        ]
+      },
+      {
+        "name": "Longsword (Two-Handed)",
+        "desc": "Melee Weapon Attack: +6 to hit, reach 5 ft., one target. Hit: 10 (1d10 + 5) slashing damage.",
+        "attack_bonus": 6,
+        "damage": [
+          {
+            "damage_type": {
+              "index": "slashing",
+              "name": "Slashing"
+            },
+            "damage_dice": "1d10+5"
+          }
+        ]
+      },
+      {
+        "name": "Light Crossbow",
+        "desc": "Ranged Weapon Attack: +5 to hit, range 80/320 ft., one target. Hit: 6 (1d8 + 2) piercing damage.",
+        "attack_bonus": 5,
+        "damage": [
+          {
+            "damage_type": {
+              "index": "piercing",
+              "name": "Piercing"
+            },
+            "damage_dice": "1d8+2"
+          }
+        ]
+      }
+    ],
+    "bonus_actions": [
+      {
+        "name": "Second Wind",
+        "desc": "Regain 1d10+5 hit points.",
+        "usage": {
+          "type": "per short rest",
+          "times": 1
+        }
+      }
+    ],
+    "reactions": [
+      {
+        "name": "Shield (Spell)",
+        "desc": "When hit by an attack, increase AC by 5 until the start of your next turn.",
+        "usage": {
+          "type": "spell slot",
+          "level": 1
+        }
+      },
+      {
+        "name": "Absorb Elements (Spell)",
+        "desc": "When you take acid, cold, fire, lightning, or thunder damage, use your reaction to halve the damage and gain resistance until the start of your next turn.",
+        "usage": {
+          "type": "spell slot",
+          "level": 1
+        }
+      }
+    ],
+    "equipment": [
+      {
+        "name": "Longsword",
+        "type": "weapon",
+        "rarity": "common",
+        "notes": "Family heirloom with minor runes, crystal embedded in pommel serves as spellcasting focus"
+      },
+      {
+        "name": "Shield",
+        "type": "armor"
+      },
+      {
+        "name": "Plate Armor",
+        "type": "armor"
+      },
+      {
+        "name": "Light Crossbow",
+        "type": "weapon",
+        "ammunition": 20
+      },
+      {
+        "name": "Explorer's Pack",
+        "type": "gear"
+      }
+    ],
+    "personality": {
+      "trait": "Disciplined and tactical; thinks three moves ahead",
+      "ideal": "Loyalty - never leave a soldier behind",
+      "bond": "Jaylen saved my life in the Borderlands Campaign; I owe him everything",
+      "flaw": "Can be overly protective, sometimes treating others like subordinates"
+    },
+    "backstory": "Served with Jaylen in the Borderlands Campaign three years ago. During a gnoll ambush, Jaylen pulled Aldric from a burning wagon while surrounded by enemies, saving his life. They became inseparable friends, and when Jaylen left military service, Aldric followed to keep his friend safe.",
+    "campaign_role": "Main player character - party tank and tactical leader",
+    "relationships": [
+      {
+        "character": "Jaylen Shadowstep",
+        "relationship": "Closest friend, saved his life, feels responsible for his safety"
+      },
+      {
+        "character": "Kael Windrider",
+        "relationship": "Fellow party member, respects his tracking skills"
+      },
+      {
+        "character": "Thora Mossborn",
+        "relationship": "Fellow party member, trusts her healing and wisdom"
+      }
+    ]
+  },
+  {
+    "index": "kael-windrider",
+    "name": "Kael Windrider",
+    "player_character": true,
+    "character_type": "party_member",
+    "size": "Medium",
+    "type": "humanoid",
+    "subtype": "elf (wood)",
+    "alignment": "neutral good",
+    "class": "Ranger",
+    "subclass": "Hunter",
+    "level": 5,
+    "background": "Outlander",
+    "armor_class": [
+      {
+        "type": "studded leather",
+        "value": 16,
+        "dex_bonus": 4
+      }
+    ],
+    "hit_points": 42,
+    "hit_dice": "5d10",
+    "hit_points_roll": "5d10+10",
+    "speed": {
+      "walk": "35 ft."
+    },
+    "strength": 10,
+    "dexterity": 18,
+    "constitution": 14,
+    "intelligence": 10,
+    "wisdom": 16,
+    "charisma": 10,
+    "proficiencies": [
+      {
+        "value": 3,
+        "proficiency": {
+          "index": "saving-throw-str",
+          "name": "Saving Throw: STR"
+        }
+      },
+      {
+        "value": 7,
+        "proficiency": {
+          "index": "saving-throw-dex",
+          "name": "Saving Throw: DEX"
+        }
+      },
+      {
+        "value": 6,
+        "proficiency": {
+          "index": "skill-perception",
+          "name": "Skill: Perception"
+        }
+      },
+      {
+        "value": 7,
+        "proficiency": {
+          "index": "skill-stealth",
+          "name": "Skill: Stealth"
+        }
+      },
+      {
+        "value": 6,
+        "proficiency": {
+          "index": "skill-survival",
+          "name": "Skill: Survival"
+        }
+      },
+      {
+        "value": 3,
+        "proficiency": {
+          "index": "skill-investigation",
+          "name": "Skill: Investigation"
+        }
+      },
+      {
+        "value": 3,
+        "proficiency": {
+          "index": "skill-nature",
+          "name": "Skill: Nature"
+        }
+      },
+      {
+        "value": 6,
+        "proficiency": {
+          "index": "skill-animal-handling",
+          "name": "Skill: Animal Handling"
+        }
+      }
+    ],
+    "damage_vulnerabilities": [],
+    "damage_resistances": [],
+    "damage_immunities": [],
+    "condition_immunities": [],
+    "senses": {
+      "darkvision": "60 ft.",
+      "passive_perception": 16
+    },
+    "languages": "Common, Elvish, Sylvan",
+    "proficiency_bonus": 3,
+    "special_abilities": [
+      {
+        "name": "Fey Ancestry",
+        "desc": "Advantage on saving throws against being charmed, and magic can't put you to sleep."
+      },
+      {
+        "name": "Trance",
+        "desc": "Elves don't need to sleep. Instead, they meditate deeply for 4 hours a day."
+      },
+      {
+        "name": "Mask of the Wild",
+        "desc": "You can attempt to hide even when only lightly obscured by foliage, heavy rain, falling snow, mist, and other natural phenomena."
+      },
+      {
+        "name": "Fighting Style: Archery",
+        "desc": "+2 bonus to attack rolls you make with ranged weapons."
+      },
+      {
+        "name": "Favored Enemy: Humanoids",
+        "desc": "Advantage on Wisdom (Survival) checks to track humanoids, as well as on Intelligence checks to recall information about them."
+      },
+      {
+        "name": "Natural Explorer: Grassland",
+        "desc": "You are particularly familiar with grassland environments and are adept at traveling and surviving in such regions. Benefits include: ignoring difficult terrain, advantage on initiative, first turn advantage against creatures that haven't acted."
+      },
+      {
+        "name": "Primeval Awareness",
+        "desc": "You can use your action to focus your awareness on the region around you. For 1 minute per level of spell slot expended, you can sense certain creature types within 1 mile (or 6 miles if in favored terrain).",
+        "usage": {
+          "type": "spell slot",
+          "times": "variable"
+        }
+      },
+      {
+        "name": "Hunter's Prey: Colossus Slayer",
+        "desc": "Once per turn when you hit a creature with a weapon attack, the creature takes an extra 1d8 damage if it's below its hit point maximum."
+      },
+      {
+        "name": "Spellcasting",
+        "desc": "You can cast ranger spells. Wisdom is your spellcasting ability. Spell save DC = 14, Spell attack modifier = +6",
+        "spellcasting": {
+          "ability": {
+            "index": "wis",
+            "name": "WIS"
+          },
+          "dc": 14,
+          "modifier": 6,
+          "spell_slots": {
+            "1": 4,
+            "2": 2
+          },
+          "spells_known": 4
+        }
+      }
+    ],
+    "spells": [
+      {
+        "level": 1,
+        "name": "Hunter's Mark",
+        "school": "divination"
+      },
+      {
+        "level": 1,
+        "name": "Cure Wounds",
+        "school": "evocation"
+      },
+      {
+        "level": 1,
+        "name": "Goodberry",
+        "school": "transmutation"
+      },
+      {
+        "level": 1,
+        "name": "Detect Magic",
+        "school": "divination"
+      }
+    ],
+    "actions": [
+      {
+        "name": "Multiattack",
+        "multiattack_type": "actions",
+        "desc": "Kael makes two ranged attacks with his longbow.",
+        "actions": [
+          {
+            "action_name": "Longbow",
+            "count": 2,
+            "type": "ranged"
+          }
+        ]
+      },
+      {
+        "name": "Longbow",
+        "desc": "Ranged Weapon Attack: +9 to hit, range 150/600 ft., one target. Hit: 8 (1d8 + 4) piercing damage, plus an additional 1d8 damage if target is below maximum hit points (Colossus Slayer, once per turn).",
+        "attack_bonus": 9,
+        "damage": [
+          {
+            "damage_type": {
+              "index": "piercing",
+              "name": "Piercing"
+            },
+            "damage_dice": "1d8+4"
+          }
+        ]
+      },
+      {
+        "name": "Shortsword",
+        "desc": "Melee Weapon Attack: +7 to hit, reach 5 ft., one target. Hit: 7 (1d6 + 4) piercing damage.",
+        "attack_bonus": 7,
+        "damage": [
+          {
+            "damage_type": {
+              "index": "piercing",
+              "name": "Piercing"
+            },
+            "damage_dice": "1d6+4"
+          }
+        ]
+      }
+    ],
+    "bonus_actions": [
+      {
+        "name": "Hunter's Mark",
+        "desc": "Choose a creature you can see within 90 feet. For 1 hour, you deal an extra 1d6 damage to the target whenever you hit it with a weapon attack.",
+        "usage": {
+          "type": "spell slot",
+          "level": 1
+        }
+      }
+    ],
+    "equipment": [
+      {
+        "name": "Longbow",
+        "type": "weapon",
+        "rarity": "common",
+        "notes": "Masterwork, carved with leaf patterns and elvish runes meaning 'Truth Seeker'"
+      },
+      {
+        "name": "Shortsword",
+        "type": "weapon"
+      },
+      {
+        "name": "Studded Leather Armor",
+        "type": "armor"
+      },
+      {
+        "name": "Quiver",
+        "type": "gear",
+        "ammunition": 40
+      },
+      {
+        "name": "Explorer's Pack",
+        "type": "gear"
+      },
+      {
+        "name": "Herbalism Kit",
+        "type": "tool"
+      }
+    ],
+    "personality": {
+      "trait": "Observant and patient; often notices details others miss",
+      "ideal": "Freedom - people should be free to forge their own paths",
+      "bond": "The four of us are a family forged through shared danger",
+      "flaw": "Distrusts civilized society and large towns"
+    },
+    "backstory": "Met Jaylen two years ago while tracking the same bandit/poacher through the Summer Expanse. They discovered mutual respect and became friends. Jaylen was the first real friend Kael made outside his elven clan in decades of solitude.",
+    "campaign_role": "Party scout and ranged damage dealer",
+    "relationships": [
+      {
+        "character": "Jaylen Shadowstep",
+        "relationship": "First close friend outside elven clan, respects his investigative skills"
+      },
+      {
+        "character": "Aldric Stormward",
+        "relationship": "Fellow party member, sometimes clashes over tactics (caution vs boldness)"
+      },
+      {
+        "character": "Thora Mossborn",
+        "relationship": "Fellow party member, enjoys philosophical discussions about nature"
+      }
+    ]
+  },
+  {
+    "index": "thora-mossborn",
+    "name": "Thora Mossborn",
+    "player_character": true,
+    "character_type": "party_member",
+    "size": "Medium",
+    "type": "humanoid",
+    "subtype": "firbolg",
+    "alignment": "true neutral",
+    "class": "Druid",
+    "subclass": "Circle of Spores",
+    "level": 5,
+    "background": "Hermit",
+    "armor_class": [
+      {
+        "type": "hide",
+        "value": 14,
+        "dex_bonus": 1
+      }
+    ],
+    "hit_points": 45,
+    "hit_dice": "5d8",
+    "hit_points_roll": "5d8+15",
+    "speed": {
+      "walk": "30 ft."
+    },
+    "strength": 10,
+    "dexterity": 12,
+    "constitution": 16,
+    "intelligence": 10,
+    "wisdom": 18,
+    "charisma": 12,
+    "proficiencies": [
+      {
+        "value": 4,
+        "proficiency": {
+          "index": "saving-throw-int",
+          "name": "Saving Throw: INT"
+        }
+      },
+      {
+        "value": 7,
+        "proficiency": {
+          "index": "saving-throw-wis",
+          "name": "Saving Throw: WIS"
+        }
+      },
+      {
+        "value": 7,
+        "proficiency": {
+          "index": "skill-perception",
+          "name": "Skill: Perception"
+        }
+      },
+      {
+        "value": 7,
+        "proficiency": {
+          "index": "skill-insight",
+          "name": "Skill: Insight"
+        }
+      },
+      {
+        "value": 7,
+        "proficiency": {
+          "index": "skill-medicine",
+          "name": "Skill: Medicine"
+        }
+      },
+      {
+        "value": 3,
+        "proficiency": {
+          "index": "skill-nature",
+          "name": "Skill: Nature"
+        }
+      },
+      {
+        "value": 3,
+        "proficiency": {
+          "index": "skill-religion",
+          "name": "Skill: Religion"
+        }
+      },
+      {
+        "value": 7,
+        "proficiency": {
+          "index": "skill-survival",
+          "name": "Skill: Survival"
+        }
+      }
+    ],
+    "damage_vulnerabilities": [],
+    "damage_resistances": [],
+    "damage_immunities": [],
+    "condition_immunities": [],
+    "senses": {
+      "passive_perception": 17
+    },
+    "languages": "Common, Druidic, Elvish, Giant, Sylvan",
+    "proficiency_bonus": 3,
+    "special_abilities": [
+      {
+        "name": "Firbolg Magic",
+        "desc": "You can cast Detect Magic and Disguise Self each once per short or long rest.",
+        "usage": {
+          "type": "per short rest",
+          "times": 1
+        }
+      },
+      {
+        "name": "Hidden Step",
+        "desc": "As a bonus action, you can magically turn invisible until the start of your next turn or until you attack, make a damage roll, or force someone to make a saving throw.",
+        "usage": {
+          "type": "per short rest",
+          "times": 1
+        }
+      },
+      {
+        "name": "Powerful Build",
+        "desc": "You count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift."
+      },
+      {
+        "name": "Speech of Beast and Leaf",
+        "desc": "You have the ability to communicate in a limited manner with beasts and plants. They can understand the meaning of your words, though you have no special ability to understand them in return."
+      },
+      {
+        "name": "Wild Shape",
+        "desc": "You can use your action to magically assume the shape of a beast that you have seen before. You can use this feature twice. You regain expended uses when you finish a short or long rest. CR 1 or lower, no flying or swimming speed.",
+        "usage": {
+          "type": "per short rest",
+          "times": 2
+        }
+      },
+      {
+        "name": "Circle Spells: Circle of Spores",
+        "desc": "You gain access to additional spells: Blindness/Deafness, Gentle Repose, Animate Dead, Gaseous Form."
+      },
+      {
+        "name": "Halo of Spores",
+        "desc": "You are surrounded by invisible, necrotic spores. When a creature you can see moves into a space within 10 feet of you or starts its turn there, you can use your reaction to deal 1d6 necrotic damage to that creature unless it succeeds on a Constitution saving throw (DC 14).",
+        "dc": {
+          "dc_type": {
+            "index": "con",
+            "name": "CON"
+          },
+          "dc_value": 14,
+          "success_type": "none"
+        }
+      },
+      {
+        "name": "Symbiotic Entity",
+        "desc": "As an action, you can expend a use of your Wild Shape feature to awaken your spores, gaining 10 temporary hit points. While active, you gain benefits: Halo of Spores deals 2d6 damage, melee weapon attacks deal extra 1d6 poison damage. Lasts 10 minutes.",
+        "usage": {
+          "type": "per short rest",
+          "times": 2
+        }
+      },
+      {
+        "name": "Fungal Infestation",
+        "desc": "When a Small or Medium beast or humanoid dies within 10 feet of you, you can use your reaction to animate it. It becomes a zombie that acts immediately after your turn. It can only take the Attack action and obeys your mental commands. It dies after 1 hour.",
+        "usage": {
+          "type": "reaction"
+        }
+      },
+      {
+        "name": "Spellcasting",
+        "desc": "You can cast druid spells. Wisdom is your spellcasting ability. Spell save DC = 14, Spell attack modifier = +7. You can prepare 9 spells.",
+        "spellcasting": {
+          "ability": {
+            "index": "wis",
+            "name": "WIS"
+          },
+          "dc": 14,
+          "modifier": 7,
+          "spell_slots": {
+            "1": 4,
+            "2": 3,
+            "3": 2
+          },
+          "spells_prepared": 9
+        }
+      }
+    ],
+    "spells": [
+      {
+        "level": 0,
+        "name": "Druidcraft",
+        "school": "transmutation"
+      },
+      {
+        "level": 0,
+        "name": "Produce Flame",
+        "school": "conjuration"
+      },
+      {
+        "level": 0,
+        "name": "Thorn Whip",
+        "school": "transmutation"
+      },
+      {
+        "level": 0,
+        "name": "Poison Spray",
+        "school": "conjuration",
+        "notes": "From Circle of Spores"
+      },
+      {
+        "level": 1,
+        "name": "Cure Wounds",
+        "school": "evocation"
+      },
+      {
+        "level": 1,
+        "name": "Entangle",
+        "school": "conjuration"
+      },
+      {
+        "level": 1,
+        "name": "Goodberry",
+        "school": "transmutation"
+      },
+      {
+        "level": 1,
+        "name": "Detect Magic",
+        "school": "divination"
+      },
+      {
+        "level": 1,
+        "name": "Faerie Fire",
+        "school": "evocation"
+      },
+      {
+        "level": 1,
+        "name": "Blindness/Deafness",
+        "school": "necromancy",
+        "notes": "From Circle of Spores"
+      },
+      {
+        "level": 2,
+        "name": "Lesser Restoration",
+        "school": "abjuration"
+      },
+      {
+        "level": 2,
+        "name": "Spike Growth",
+        "school": "transmutation"
+      },
+      {
+        "level": 2,
+        "name": "Pass Without Trace",
+        "school": "abjuration"
+      },
+      {
+        "level": 2,
+        "name": "Gentle Repose",
+        "school": "necromancy",
+        "notes": "From Circle of Spores"
+      },
+      {
+        "level": 2,
+        "name": "Ray of Enfeeblement",
+        "school": "necromancy",
+        "notes": "From Circle of Spores"
+      },
+      {
+        "level": 3,
+        "name": "Dispel Magic",
+        "school": "abjuration"
+      },
+      {
+        "level": 3,
+        "name": "Plant Growth",
+        "school": "transmutation"
+      },
+      {
+        "level": 3,
+        "name": "Animate Dead",
+        "school": "necromancy",
+        "notes": "From Circle of Spores"
+      },
+      {
+        "level": 3,
+        "name": "Gaseous Form",
+        "school": "transmutation",
+        "notes": "From Circle of Spores"
+      }
+    ],
+    "actions": [
+      {
+        "name": "Quarterstaff",
+        "desc": "Melee Weapon Attack: +3 to hit, reach 5 ft., one target. Hit: 3 (1d6) bludgeoning damage, or 4 (1d8) bludgeoning damage if used with two hands. Add 1d6 poison damage if Symbiotic Entity is active.",
+        "attack_bonus": 3,
+        "damage": [
+          {
+            "damage_type": {
+              "index": "bludgeoning",
+              "name": "Bludgeoning"
+            },
+            "damage_dice": "1d6"
+          }
+        ]
+      },
+      {
+        "name": "Produce Flame",
+        "desc": "Ranged Spell Attack: +7 to hit, range 30 ft., one target. Hit: 4 (1d8) fire damage.",
+        "attack_bonus": 7,
+        "damage": [
+          {
+            "damage_type": {
+              "index": "fire",
+              "name": "Fire"
+            },
+            "damage_dice": "1d8"
+          }
+        ]
+      },
+      {
+        "name": "Thorn Whip",
+        "desc": "Melee Spell Attack: +7 to hit, reach 30 ft., one target. Hit: 8 (2d8) piercing damage, and pull the creature up to 10 feet closer.",
+        "attack_bonus": 7,
+        "damage": [
+          {
+            "damage_type": {
+              "index": "piercing",
+              "name": "Piercing"
+            },
+            "damage_dice": "2d8"
+          }
+        ]
+      },
+      {
+        "name": "Poison Spray",
+        "desc": "A creature within 10 feet must succeed on a Constitution saving throw (DC 14) or take 8 (2d12) poison damage.",
+        "dc": {
+          "dc_type": {
+            "index": "con",
+            "name": "CON"
+          },
+          "dc_value": 14,
+          "success_type": "none"
+        },
+        "damage": [
+          {
+            "damage_type": {
+              "index": "poison",
+              "name": "Poison"
+            },
+            "damage_dice": "2d12"
+          }
+        ]
+      },
+      {
+        "name": "Wild Shape",
+        "desc": "Transform into a beast form (CR 1 or lower, no flying/swimming speed) for up to 2.5 hours.",
+        "usage": {
+          "type": "per short rest",
+          "times": 2
+        }
+      },
+      {
+        "name": "Symbiotic Entity",
+        "desc": "Activate spores to gain 10 temporary HP and enhanced damage for 10 minutes.",
+        "usage": {
+          "type": "per short rest",
+          "times": 2
+        }
+      }
+    ],
+    "bonus_actions": [
+      {
+        "name": "Hidden Step",
+        "desc": "Turn invisible until the start of your next turn or until you attack.",
+        "usage": {
+          "type": "per short rest",
+          "times": 1
+        }
+      }
+    ],
+    "reactions": [
+      {
+        "name": "Halo of Spores",
+        "desc": "Deal 1d6 necrotic damage (2d6 if Symbiotic Entity is active) when a creature enters or starts its turn within 10 feet. DC 14 Constitution save to negate.",
+        "dc": {
+          "dc_type": {
+            "index": "con",
+            "name": "CON"
+          },
+          "dc_value": 14,
+          "success_type": "none"
+        },
+        "damage": [
+          {
+            "damage_type": {
+              "index": "necrotic",
+              "name": "Necrotic"
+            },
+            "damage_dice": "1d6"
+          }
+        ]
+      },
+      {
+        "name": "Fungal Infestation",
+        "desc": "Animate a Small or Medium beast or humanoid that dies within 10 feet as a zombie for 1 hour."
+      }
+    ],
+    "equipment": [
+      {
+        "name": "Quarterstaff",
+        "type": "weapon",
+        "notes": "Gnarled wood with fungal growths, bioluminescent mushrooms that glow blue-green in darkness"
+      },
+      {
+        "name": "Hide Armor",
+        "type": "armor",
+        "notes": "Decorated with moss and lichen"
+      },
+      {
+        "name": "Druidic Focus",
+        "type": "gear",
+        "notes": "Wooden totem wrapped in mushrooms"
+      },
+      {
+        "name": "Herbalism Kit",
+        "type": "tool"
+      },
+      {
+        "name": "Explorer's Pack",
+        "type": "gear"
+      }
+    ],
+    "personality": {
+      "trait": "Speaks in calm, measured tones; comfortable with silence",
+      "ideal": "Balance - life and death are two sides of the same cycle",
+      "bond": "These three understand that decay is not evil, but transformation",
+      "flaw": "Sometimes too accepting of death; can seem cold when discussing casualties"
+    },
+    "backstory": "Met Jaylen eighteen months ago when he fled into her grove escaping cultists. She healed him and they discussed life, death, and strange phenomena. He was the first to not fear her connection to decay. She joined the party at his invitation, curious about the world beyond her grove.",
+    "campaign_role": "Party healer, crowd control specialist, and detector of unnatural corruption",
+    "relationships": [
+      {
+        "character": "Jaylen Shadowstep",
+        "relationship": "First person who accepted her connection to death/decay without fear"
+      },
+      {
+        "character": "Aldric Stormward",
+        "relationship": "Fellow party member, trusts her wisdom and healing"
+      },
+      {
+        "character": "Kael Windrider",
+        "relationship": "Fellow party member, shares understanding of nature's cycles"
+      }
+    ],
+    "campaign_specific": {
+      "vision": "Three nights ago, had disturbing vision: fungal networks screaming, mycelium burning from unnatural corruption. Sensed Jaylen surrounded by yellow ooze masquerading as life - a mockery of natural cycle.",
+      "motivation": "Must find Jaylen and cleanse the abomination that is Humantown"
+    }
+  },
+  {
+    "index": "jaylen-shadowstep",
+    "name": "Jaylen Shadowstep",
+    "player_character": true,
+    "character_type": "quest_npc",
+    "size": "Medium",
+    "type": "humanoid",
+    "subtype": "human",
+    "alignment": "neutral good",
+    "class": "Rogue",
+    "subclass": "Inquisitive",
+    "level": 5,
+    "background": "Investigator",
+    "armor_class": [
+      {
+        "type": "studded leather",
+        "value": 15,
+        "dex_bonus": 4
+      }
+    ],
+    "hit_points": 36,
+    "current_hit_points": 18,
+    "hit_dice": "5d8",
+    "hit_points_roll": "5d8+5",
+    "speed": {
+      "walk": "30 ft."
+    },
+    "strength": 10,
+    "dexterity": 18,
+    "constitution": 12,
+    "intelligence": 14,
+    "wisdom": 14,
+    "charisma": 13,
+    "proficiencies": [
+      {
+        "value": 7,
+        "proficiency": {
+          "index": "saving-throw-dex",
+          "name": "Saving Throw: DEX"
+        }
+      },
+      {
+        "value": 4,
+        "proficiency": {
+          "index": "saving-throw-int",
+          "name": "Saving Throw: INT"
+        }
+      },
+      {
+        "value": 7,
+        "proficiency": {
+          "index": "skill-acrobatics",
+          "name": "Skill: Acrobatics"
+        }
+      },
+      {
+        "value": 8,
+        "proficiency": {
+          "index": "skill-insight",
+          "name": "Skill: Insight"
+        }
+      },
+      {
+        "value": 8,
+        "proficiency": {
+          "index": "skill-investigation",
+          "name": "Skill: Investigation"
+        }
+      },
+      {
+        "value": 5,
+        "proficiency": {
+          "index": "skill-perception",
+          "name": "Skill: Perception"
+        }
+      },
+      {
+        "value": 7,
+        "proficiency": {
+          "index": "skill-stealth",
+          "name": "Skill: Stealth"
+        }
+      },
+      {
+        "value": 4,
+        "proficiency": {
+          "index": "skill-deception",
+          "name": "Skill: Deception"
+        }
+      },
+      {
+        "value": 7,
+        "proficiency": {
+          "index": "skill-sleight-of-hand",
+          "name": "Skill: Sleight of Hand"
+        }
+      }
+    ],
+    "damage_vulnerabilities": [],
+    "damage_resistances": [],
+    "damage_immunities": [],
+    "condition_immunities": [],
+    "senses": {
+      "passive_perception": 15
+    },
+    "languages": "Common, Thieves' Cant, Elvish",
+    "proficiency_bonus": 3,
+    "special_abilities": [
+      {
+        "name": "Sneak Attack",
+        "desc": "Once per turn, you can deal an extra 3d6 damage to one creature you hit with an attack if you have advantage on the attack roll.",
+        "damage": [
+          {
+            "damage_type": {
+              "index": "piercing",
+              "name": "Piercing"
+            },
+            "damage_dice": "3d6"
+          }
+        ]
+      },
+      {
+        "name": "Cunning Action",
+        "desc": "You can take a bonus action to take the Dash, Disengage, or Hide action."
+      },
+      {
+        "name": "Uncanny Dodge",
+        "desc": "When an attacker that you can see hits you with an attack, you can use your reaction to halve the attack's damage against you.",
+        "usage": {
+          "type": "reaction"
+        }
+      },
+      {
+        "name": "Ear for Deceit",
+        "desc": "Whenever you make a Wisdom (Insight) check to sense if a creature is lying, treat a roll of 7 or lower as an 8."
+      },
+      {
+        "name": "Eye for Detail",
+        "desc": "You can use a bonus action to make a Wisdom (Perception) check to spot a hidden creature or object, or to make an Intelligence (Investigation) check to uncover or decipher clues."
+      },
+      {
+        "name": "Insightful Fighting",
+        "desc": "As a bonus action, make a Wisdom (Insight) check contested by a target's Charisma (Deception). If you succeed, you can use Sneak Attack against that target even without advantage for 1 minute."
+      },
+      {
+        "name": "Steady Aim",
+        "desc": "As a bonus action, you give yourself advantage on your next attack roll. You can't move on the turn you use this feature."
+      }
+    ],
+    "actions": [
+      {
+        "name": "Rapier",
+        "desc": "Melee Weapon Attack: +7 to hit, reach 5 ft., one target. Hit: 8 (1d8 + 4) piercing damage, plus 10 (3d6) piercing damage if Sneak Attack applies.",
+        "attack_bonus": 7,
+        "damage": [
+          {
+            "damage_type": {
+              "index": "piercing",
+              "name": "Piercing"
+            },
+            "damage_dice": "1d8+4"
+          }
+        ],
+        "notes": "Currently confiscated"
+      },
+      {
+        "name": "Hand Crossbow",
+        "desc": "Ranged Weapon Attack: +7 to hit, range 30/120 ft., one target. Hit: 7 (1d6 + 4) piercing damage, plus 10 (3d6) piercing damage if Sneak Attack applies.",
+        "attack_bonus": 7,
+        "damage": [
+          {
+            "damage_type": {
+              "index": "piercing",
+              "name": "Piercing"
+            },
+            "damage_dice": "1d6+4"
+          }
+        ],
+        "notes": "Currently confiscated"
+      }
+    ],
+    "bonus_actions": [
+      {
+        "name": "Cunning Action",
+        "desc": "Dash, Disengage, or Hide."
+      },
+      {
+        "name": "Eye for Detail",
+        "desc": "Make a Perception or Investigation check."
+      },
+      {
+        "name": "Insightful Fighting",
+        "desc": "Contest Insight vs. Deception to gain ability to Sneak Attack without advantage."
+      },
+      {
+        "name": "Steady Aim",
+        "desc": "Gain advantage on next attack (can't move this turn)."
+      }
+    ],
+    "reactions": [
+      {
+        "name": "Uncanny Dodge",
+        "desc": "Halve damage from an attack you can see."
+      }
+    ],
+    "equipment": [
+      {
+        "name": "Rapier",
+        "type": "weapon",
+        "status": "confiscated"
+      },
+      {
+        "name": "Hand Crossbow",
+        "type": "weapon",
+        "status": "confiscated"
+      },
+      {
+        "name": "Studded Leather Armor",
+        "type": "armor",
+        "status": "worn, damaged"
+      },
+      {
+        "name": "Thieves' Tools",
+        "type": "tool",
+        "status": "confiscated"
+      },
+      {
+        "name": "Magnifying Glass",
+        "type": "gear",
+        "status": "still in pocket"
+      },
+      {
+        "name": "Small Notebook",
+        "type": "gear",
+        "status": "in cell, contains investigation notes"
+      }
+    ],
+    "personality": {
+      "trait": "Endlessly curious; asks questions about everything",
+      "ideal": "Truth - mysteries exist to be solved",
+      "bond": "My friends are my family; I trust them completely",
+      "flaw": "Curiosity often overrides common sense"
+    },
+    "backstory": "Former military scout who saved Aldric's life during the Borderlands Campaign. Left military service to pursue freelance investigation work. Known for his insatiable curiosity and investigative prowess. Discovered Humantown while researching anomalous phenomena in the region.",
+    "campaign_role": "Quest objective - captured and imprisoned by Alistair Porridgepot",
+    "current_status": {
+      "location": "Mill Laboratory (M3)",
+      "condition": "Restrained, suspended above iron basin of living slime",
+      "hit_points": "18/36 (half health)",
+      "exhaustion_level": 1,
+      "description": "Legs and arms bound, held aloft by rope attached to complicated lever system. Weakened and exhausted but mentally alert. Being interrogated by Alistair about who else knows of Humantown's location."
+    },
+    "relationships": [
+      {
+        "character": "Aldric Stormward",
+        "relationship": "Saved his life, closest friend, feels guilty for not bringing him along"
+      },
+      {
+        "character": "Kael Windrider",
+        "relationship": "Investigation and tracking partner, mutual respect"
+      },
+      {
+        "character": "Thora Mossborn",
+        "relationship": "Fascinated by her perspective on death/decay, trusts her completely"
+      }
+    ],
+    "investigation_notes": {
+      "last_entry": "Planning to investigate the Museum of Human History. Heard something large shuffling inside. The denizens are definitely not human - their behavior is too strange, too mechanical. Whatever created this town is conducting experiments. Need to find evidence.",
+      "discoveries": [
+        "Town appeared within last year, no historical records",
+        "Denizens exhibit inhuman behavior patterns",
+        "Buildings constructed recently, all within months",
+        "Museum contains disturbing contents",
+        "No actual economic activity despite appearances"
+      ]
+    }
+  }
+]

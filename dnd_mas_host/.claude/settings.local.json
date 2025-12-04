@@ -9,7 +9,13 @@
       "Search(pattern:*, include:*)",
       "WebFetch(domain:*)",
       "Bash(crewai --help:*)",
-      "Bash(crewai flow --help:*)"
+      "Bash(crewai flow --help:*)",
+      "Bash(python -m py_compile:*)",
+      "Bash(python -m pip install:*)",
+      "Bash(python -m crewai.__version__:*)",
+      "Bash(python test_shared_buffer.py:*)",
+      "Bash(python -c:*)",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "ask": []

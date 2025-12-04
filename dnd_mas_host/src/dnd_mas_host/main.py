@@ -8,9 +8,9 @@ from pydantic import BaseModel, Field
 
 from crewai.flow.flow import Flow, listen, start, router
 
-from dnd_mas_host.crews.judge_crew.judge_crew import JudgeCrew
+from dnd_mas_host.crews.judge_crew.judge_crew import JudgeFlow
 
-from dnd_mas_host.crews.narrator_crew.narrator_crew import NarratorCrew
+from dnd_mas_host.crews.narrator_crew.narrator_crew import NarratorFlow
 
 from dnd_mas_host.crews.npc_crew.npc_crew import NpcCrew
 
@@ -50,47 +50,46 @@ class WorkflowStep(str, Enum):
 
 class HostState(BaseModel):
     """
-    State model for D&D MAS workflow coordination.
+    Workflow coordination state for HostFlow.
 
-    This tracks workflow state across all crews. Note that the Narrator Agent
-    also maintains internal memory (story progress, combat state, etc.) that
-    is NOT stored in HostState.
+    Reset before each prompt execution. Synced from/to GameState by GameManager.
+    This only contains workflow coordination fields, not persistent game state.
     """
-    # Workflow
+    # Workflow coordination (reset per prompt)
     workflow_step: WorkflowStep = Field(default=WorkflowStep.STEP_1_RECEIVE_PROMPT, description="Current step in the game loop")
     current_agent: str = Field(default="", description="Name of the agent currently processing")
     flow_complete: bool = Field(default=False, description="Flag to indicate flow completion (for debugging)")
 
-    # Campaign and Player
-    campaign: str = Field(default="Humantown", description="Campaign name")
-    player: str = Field(default="Adventurer", description="Player character name")
-    player_class: str = Field(default="Fighter", description="Player character class")
-    player_background: str = Field(default="", description="Player character background")
-
-    # User interaction
+    # Current prompt processing
     prompt_text: str = Field(default="", description="Current user's prompt being processed")
     prompt_valid: bool = Field(default=True, description="Whether the prompt passed validation")
     validation_message: Optional[str] = Field(default=None, description="Validation feedback message if prompt is invalid")
 
-    # Action processing
+    # Action processing (current turn)
     action_extracted: Optional[Dict[str, Any]] = Field(default=None, description="Extracted action (action_type, target, method, intent)")
     Action_difficulty: Dict[str, int] = Field(default_factory=dict, description="Action difficulty assigned by Judge Agent")
     difficulty_check: int = Field(default=0, description="The d20 roll result for difficulty check")
     skip_difficulty_check: bool = Field(default=False, description="Whether to skip difficulty check (too easy/impossible)")
     effect: Optional[str] = Field(default=None, description="The effect of action evaluated by Judge Agent")
 
-    # NPC tracking (retrieved from MongoDB when needed based on venue/stage)
-    active_npcs: List[Dict[str, Any]] = Field(default_factory=list, description="NPCs in current venue (retrieved from MongoDB)")
+    # NPC reactions (current turn)
+    active_npcs: List[Dict[str, Any]] = Field(default_factory=list, description="NPCs in current venue (loaded by GameManager)")
     npc_reactions_completed: List[Dict[str, Any]] = Field(default_factory=list, description="List of completed NPC reactions with narratives")
 
-    # Output
+    # Output (current turn)
     final_output: str = Field(default="", description="Final generated narrative to display to user")
 
-    # Game state (MVP - minimal fields, Narrator Agent tracks more in internal memory)
+    # Game state snapshot (synced from GameState before kickoff)
+    campaign: str = Field(default="Humantown", description="Campaign name")
+    player: str = Field(default="", description="Player character name")
     current_stage: str = Field(default="", description="Current story stage")
     current_venue: str = Field(default="", description="Current location/venue")
-    character_hp: int = Field(default=20, description="Main character current HP")
-    character_max_hp: int = Field(default=20, description="Main character maximum HP")
+    character_hp: int = Field(default=0, description="Main character current HP")
+    character_max_hp: int = Field(default=0, description="Main character maximum HP")
+
+    # Context from previous turn
+    previous_prompt: str = Field(default="", description="Previous user prompt for context")
+    previous_narrative: str = Field(default="", description="Previous narrative output for context")
 
 
 
@@ -104,13 +103,45 @@ class HostFlow(Flow[HostState]):
 
     def __init__(self, gui_queues: Optional[Dict[str, queue.Queue]] = None):
         """
-        Initialize HostFlow with optional GUI communication queues.
+        Initialize HostFlow (created once, reused for all prompts).
 
         Args:
             gui_queues: Optional dict with 'to_flow' and 'from_flow' queues for GUI integration
         """
         super().__init__()
         self.gui_queues = gui_queues
+
+    def reset_state(self):
+        """
+        Reset workflow coordination fields before new prompt.
+
+        Resets:
+        - workflow_step → STEP_1_RECEIVE_PROMPT
+        - current_agent → ""
+        - flow_complete → False
+        - prompt_text, action_extracted, difficulty_check, etc. → defaults
+        - final_output → ""
+        - active_npcs, npc_reactions_completed → []
+
+        Preserves (synced from GameState by GameManager):
+        - campaign, player, current_stage, current_venue
+        - character_hp, character_max_hp
+        - previous_prompt, previous_narrative
+        """
+        self.state.workflow_step = WorkflowStep.STEP_1_RECEIVE_PROMPT
+        self.state.current_agent = ""
+        self.state.flow_complete = False
+        self.state.prompt_text = ""
+        self.state.prompt_valid = True
+        self.state.validation_message = None
+        self.state.action_extracted = None
+        self.state.Action_difficulty = {}
+        self.state.difficulty_check = 0
+        self.state.skip_difficulty_check = False
+        self.state.effect = None
+        self.state.active_npcs = []
+        self.state.npc_reactions_completed = []
+        self.state.final_output = ""
 
     @start()
     def receive_prompt(self):
@@ -121,91 +152,94 @@ class HostFlow(Flow[HostState]):
         return self.state
 
     @listen(receive_prompt)
-    def validate_and_extract(self):
-        """Steps 2-3: Narrator validates + extracts (all 3 tasks execute)"""
+    async def validate_and_extract(self):
+        """Steps 2-3: Narrator validates + extracts using NarratorFlow"""
+        print(f"\n[DEBUG] HostFlow.validate_and_extract() called")
+        print(f"[DEBUG]   - prompt_text: '{self.state.prompt_text[:50] if self.state.prompt_text else None}...'")
+        print(f"[DEBUG]   - current_venue: {self.state.current_venue}")
+
         self.state.workflow_step = WorkflowStep.STEP_2_VALIDATE_PROMPT
         self.state.current_agent = "Narrator"
 
-        result = NarratorCrew().crew().kickoff(
-            inputs={
-                "campaign": self.state.campaign,
-                "player": self.state.player,
-                "prompt": self.state.prompt_text,
-                "current_venue": self.state.current_venue
-            }
-        )
+        # Create and run NarratorFlow (validation phase) - async call
+        narrator_flow = NarratorFlow()
+        print(f"[DEBUG] Calling narrator_flow.kickoff_async()...")
 
-        # All 3 tasks executed - extract outputs from task_outputs
-        # Task 0: validate_prompt
-        try:
-            validation_output = result.tasks_output[0].to_dict()
-            self.state.prompt_valid = validation_output.get("valid", True)
-            self.state.validation_message = validation_output.get("message", "")
-        except Exception as e:
-            print(f"Error parsing validation output: {e}")
-            self.state.prompt_valid = True  # Default to valid on parse error
-            self.state.validation_message = ""
+        await narrator_flow.kickoff_async(inputs={
+            "campaign": self.state.campaign,
+            "player": self.state.player,
+            "prompt": self.state.prompt_text,
+            "current_venue": self.state.current_venue
+        })
 
-        # Task 1: action_extract (only if validation passed)
-        if self.state.prompt_valid and len(result.tasks_output) > 1:
-            try:
-                self.state.action_extracted = result.tasks_output[1].to_dict()
-            except Exception as e:
-                print(f"Error parsing action extraction output: {e}")
-                self.state.action_extracted = {"action": "unknown"}
+        # DEBUG: Check narrator flow final state
+        print(f"[DEBUG] NarratorFlow completed!")
+        print(f"[DEBUG]   - prompt_valid: {narrator_flow.state.prompt_valid}")
+        print(f"[DEBUG]   - validation_message: '{narrator_flow.state.validation_message[:100] if narrator_flow.state.validation_message else None}...'")
+        print(f"[DEBUG]   - action_extracted: {narrator_flow.state.action_extracted}")
 
-        # Task 2: narrative_task (skipped - no action/effect/reactions yet)
+        # Extract results from flow state
+        self.state.prompt_valid = narrator_flow.state.prompt_valid
+        self.state.validation_message = narrator_flow.state.validation_message
+        self.state.action_extracted = narrator_flow.state.action_extracted
+
+        print(f"[DEBUG] HostState updated:")
+        print(f"[DEBUG]   - prompt_valid: {self.state.prompt_valid}")
+
         return self.state
 
     @router(validate_and_extract)
     def route_validation(self):
         """Route based on prompt validation"""
+        print(f"\n[DEBUG] HostFlow.route_validation() called")
+        print(f"[DEBUG]   - prompt_valid: {self.state.prompt_valid}")
+
         if self.state.prompt_valid:
+            print("[DEBUG] Routing to check_difficulty")
             return "check_difficulty"
         else:
-            return "request_clarification"
+            print("[DEBUG] Validation failed - sending error to GUI and terminating flow")
 
-    @listen("request_clarification")
-    def request_clarification(self):
-        """Exception: Invalid prompt"""
-        self.state.workflow_step = WorkflowStep.EXCEPTION_INVALID_PROMPT
-        self.state.current_agent = "Interface"
-        self.state.final_output = self.state.validation_message or "Invalid prompt. Please clarify."
+            # Set final state
+            self.state.workflow_step = WorkflowStep.EXCEPTION_INVALID_PROMPT
+            self.state.current_agent = "Interface"
+            self.state.final_output = self.state.validation_message or "Invalid prompt. Please clarify."
 
-        # Send validation error to GUI if available
-        if self.gui_queues:
-            from dnd_mas_host.interface.message_types import MessageType, create_message
+            # Send validation error to GUI if available
+            if self.gui_queues:
+                from dnd_mas_host.interface.message_types import MessageType, create_message
 
-            self.gui_queues["from_flow"].put(create_message(
-                MessageType.VALIDATION_ERROR,
-                {"message": self.state.validation_message or "Invalid prompt. Please clarify."}
-            ))
+                print(f"[DEBUG] Sending VALIDATION_ERROR to GUI")
+                self.gui_queues["from_flow"].put(create_message(
+                    MessageType.VALIDATION_ERROR,
+                    {"message": self.state.validation_message or "Invalid prompt. Please clarify."}
+                ))
 
-        return self.state
+            # Return None to terminate flow without triggering more listeners
+            print(f"[DEBUG] Returning None to terminate HostFlow")
+            return None
 
     @listen("check_difficulty")
-    def evaluate_difficulty(self):
-        """Step 4: Judge evaluates difficulty"""
+    async def evaluate_difficulty(self):
+        """Step 4: Judge evaluates difficulty using JudgeFlow"""
         self.state.workflow_step = WorkflowStep.STEP_4_EVALUATE_DIFFICULTY
         self.state.current_agent = "Judge"
 
-        result = JudgeCrew().crew().kickoff(
-            inputs={
-                "campaign": self.state.campaign,
-                "player": self.state.player,
-                "action": self.state.action_extracted
-            }
-        )
+        # Create and run JudgeFlow (difficulty assessment phase) - async call
+        judge_flow = JudgeFlow()
+        await judge_flow.kickoff_async(inputs={
+            "campaign": self.state.campaign,
+            "player": self.state.player,
+            "action": self.state.action_extracted,
+            "roll": 0  # Indicates difficulty assessment phase
+        })
 
-        # Judge has 2 tasks - get first task output (difficulty)
-        try:
-            difficulty_output = result.tasks_output[0].to_dict()
-            self.state.Action_difficulty = difficulty_output
-            self.state.skip_difficulty_check = difficulty_output.get("skip_check", False)
-        except Exception as e:
-            print(f"Error parsing difficulty output: {e}")
-            self.state.Action_difficulty = {"difficulty": 10}
-            self.state.skip_difficulty_check = False
+        # Extract results from flow state
+        self.state.Action_difficulty = {
+            "difficulty": judge_flow.state.difficulty,
+            "reasoning": judge_flow.state.difficulty_reasoning
+        }
+        self.state.skip_difficulty_check = judge_flow.state.skip_difficulty_check
 
         return self.state
 
@@ -259,32 +293,22 @@ class HostFlow(Flow[HostState]):
 
     @listen(perform_check)
     @listen("skip_to_consequences")
-    def evaluate_consequences(self):
-        """Step 6: Judge evaluates consequences"""
+    async def evaluate_consequences(self):
+        """Step 6: Judge evaluates consequences using JudgeFlow"""
         self.state.workflow_step = WorkflowStep.STEP_6_EVALUATE_CONSEQUENCES
         self.state.current_agent = "Judge"
 
-        result = JudgeCrew().crew().kickoff(
-            inputs={
-                "campaign": self.state.campaign,
-                "player": self.state.player,
-                "action": self.state.action_extracted,
-                "roll": self.state.difficulty_check,
-                "difficulty": self.state.Action_difficulty
-            }
-        )
+        # Create and run JudgeFlow (consequence evaluation phase) - async call
+        judge_flow = JudgeFlow()
+        await judge_flow.kickoff_async(inputs={
+            "campaign": self.state.campaign,
+            "player": self.state.player,
+            "action": self.state.action_extracted,
+            "roll": self.state.difficulty_check
+        })
 
-        # Get second task output (consequences)
-        try:
-            if len(result.tasks_output) > 1:
-                consequences_output = result.tasks_output[1].to_dict()
-            else:
-                consequences_output = {}
-
-            self.state.effect = consequences_output.get("effect", "No effect")
-        except Exception as e:
-            print(f"Error parsing consequences output: {e}")
-            self.state.effect = "Unknown effect"
+        # Extract results from flow state
+        self.state.effect = judge_flow.state.effect
 
         return self.state
 
@@ -346,39 +370,29 @@ class HostFlow(Flow[HostState]):
         return self.state
 
     @listen(process_npc_reactions)
-    def generate_narrative(self):
-        """Step 10: Narrator generates narrative (all 3 tasks execute again)"""
+    async def generate_narrative(self):
+        """Step 10: Narrator generates narrative using NarratorFlow"""
         self.state.workflow_step = WorkflowStep.STEP_10_GENERATE_NARRATIVE
         self.state.current_agent = "Narrator"
 
-        result = NarratorCrew().crew().kickoff(
-            inputs={
-                "campaign": self.state.campaign,
-                "player": self.state.player,
-                "prompt": "",  # Empty - validation skips
-                "action": self.state.action_extracted,
-                "effect": self.state.effect,
-                "reactions": self.state.npc_reactions_completed,
-                "current_venue": self.state.current_venue
-            }
-        )
+        # Create and run NarratorFlow (narrative generation phase) - async call
+        narrator_flow = NarratorFlow()
+        await narrator_flow.kickoff_async(inputs={
+            "campaign": self.state.campaign,
+            "player": self.state.player,
+            "action": self.state.action_extracted,
+            "effect": self.state.effect,
+            "reactions": self.state.npc_reactions_completed,
+            "current_venue": self.state.current_venue
+        })
 
-        # All 3 tasks executed - get narrative from task 0 (narrative_task is first in the task list)
-        try:
-            if len(result.tasks_output) > 0:
-                narrative_output = result.tasks_output[0].to_dict()
-            else:
-                narrative_output = {}
+        # Extract results from flow state
+        self.state.final_output = narrator_flow.state.narrative
 
-            self.state.final_output = narrative_output.get("narrative", "No narrative generated")
-
-            # Update game state from narrator
-            state_updates = narrative_output.get("state_updates", {})
-            self.state.character_hp = state_updates.get("character_hp", self.state.character_hp)
-            self.state.current_venue = state_updates.get("current_venue", self.state.current_venue)
-        except Exception as e:
-            print(f"Error parsing narrative output: {e}")
-            self.state.final_output = "Error generating narrative"
+        # Update game state from narrator
+        state_updates = narrator_flow.state.state_updates
+        self.state.character_hp = state_updates.get("character_hp", self.state.character_hp)
+        self.state.current_venue = state_updates.get("current_venue", self.state.current_venue)
 
         return self.state
 
@@ -392,6 +406,7 @@ class HostFlow(Flow[HostState]):
 
         # Mark flow as complete to stop looping (for debugging)
         self.state.flow_complete = True
+
         return self.state
 
 
