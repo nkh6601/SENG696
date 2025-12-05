@@ -161,24 +161,51 @@ class HostFlow(Flow[HostState]):
         Returns:
             Venue object if found, None otherwise
         """
+        print(f"[DEBUG] _load_venue_from_db called with venue_name='{venue_name}'")
         try:
-            from dnd_mas_host.tools.mongodb_vector_tools import get_mongo_client
-            client = get_mongo_client()
+            from pymongo import MongoClient
+            from dnd_mas_host.tools.mongodb_vector_tools import MongoDBVectorSearchConfig
+
+            print(f"[DEBUG] Connecting to MongoDB: {MongoDBVectorSearchConfig.MONGO_URI}")
+            client = MongoClient(MongoDBVectorSearchConfig.MONGO_URI)
             db = client["campaign"]
+
+            print(f"[DEBUG] Searching for venue with name='{venue_name}'")
             venue_doc = db["venues"].find_one({"name": venue_name})
 
             if venue_doc:
-                return Venue(
+                print(f"[DEBUG] Found venue document: {list(venue_doc.keys())}")
+
+                # Extract action names from action objects
+                # MongoDB stores: [{"name": "...", "description": "..."}, ...]
+                # Model expects: ["action_name1", "action_name2", ...]
+                actions = venue_doc.get("actions", [])
+                action_names = []
+                if actions:
+                    for action in actions:
+                        if isinstance(action, dict):
+                            action_names.append(action.get("name", ""))
+                        else:
+                            action_names.append(str(action))
+                print(f"[DEBUG] Extracted {len(action_names)} action names: {action_names}")
+
+                venue = Venue(
                     name=venue_doc.get("name", ""),
                     env_desc=venue_doc.get("envDesc", ""),
                     story_desc=venue_doc.get("storyDesc", ""),
                     connect_venues=venue_doc.get("connectVenues", []),
                     npcs_present=venue_doc.get("NPCs", []),
-                    supported_actions=venue_doc.get("actions", [])
+                    supported_actions=action_names
                 )
-            return None
+                print(f"[DEBUG] Successfully created Venue object: {venue.name}")
+                return venue
+            else:
+                print(f"[DEBUG] No venue found with name='{venue_name}'")
+                return None
         except Exception as e:
             print(f"[ERROR] Failed to load venue {venue_name}: {e}")
+            import traceback
+            traceback.print_exc()
             return None
 
     def _load_stage_from_db(self, stage_name: str) -> Optional[Stage]:
@@ -191,14 +218,21 @@ class HostFlow(Flow[HostState]):
         Returns:
             Stage object if found, None otherwise
         """
+        print(f"[DEBUG] _load_stage_from_db called with stage_name='{stage_name}'")
         try:
-            from dnd_mas_host.tools.mongodb_vector_tools import get_mongo_client
-            client = get_mongo_client()
+            from pymongo import MongoClient
+            from dnd_mas_host.tools.mongodb_vector_tools import MongoDBVectorSearchConfig
+
+            print(f"[DEBUG] Connecting to MongoDB: {MongoDBVectorSearchConfig.MONGO_URI}")
+            client = MongoClient(MongoDBVectorSearchConfig.MONGO_URI)
             db = client["campaign"]
+
+            print(f"[DEBUG] Searching for stage with name='{stage_name}'")
             stage_doc = db["stages"].find_one({"name": stage_name})
 
             if stage_doc:
-                return Stage(
+                print(f"[DEBUG] Found stage document: {list(stage_doc.keys())}")
+                stage = Stage(
                     name=stage_doc.get("name", ""),
                     env_desc=stage_doc.get("envDesc", ""),
                     story_desc=stage_doc.get("storyDesc", ""),
@@ -206,9 +240,15 @@ class HostFlow(Flow[HostState]):
                     start_venue=stage_doc.get("start_venue", ""),
                     start_narrative=stage_doc.get("start_narrative", "")
                 )
-            return None
+                print(f"[DEBUG] Successfully created Stage object: {stage.name}")
+                return stage
+            else:
+                print(f"[DEBUG] No stage found with name='{stage_name}'")
+                return None
         except Exception as e:
             print(f"[ERROR] Failed to load stage {stage_name}: {e}")
+            import traceback
+            traceback.print_exc()
             return None
 
     def load_enriched_context(self):
@@ -218,18 +258,38 @@ class HostFlow(Flow[HostState]):
         This method is called after HostState has been synced from GameState
         to populate the structured object fields for use by sub-flows.
         """
+        print(f"\n[DEBUG] ========== load_enriched_context() START ==========")
+        print(f"[DEBUG] Current state values:")
+        print(f"[DEBUG]   - current_venue: '{self.state.current_venue}'")
+        print(f"[DEBUG]   - current_stage: '{self.state.current_stage}'")
+        print(f"[DEBUG]   - active_npcs count: {len(self.state.active_npcs)}")
+
         # Load venue object
         if self.state.current_venue:
+            print(f"[DEBUG] Loading venue '{self.state.current_venue}'...")
             self.state.current_venue_obj = self._load_venue_from_db(self.state.current_venue)
-            print(f"[INFO] Loaded venue: {self.state.current_venue_obj.name if self.state.current_venue_obj else 'None'}")
+            if self.state.current_venue_obj:
+                print(f"[INFO] ✓ Loaded venue: {self.state.current_venue_obj.name}")
+            else:
+                print(f"[WARNING] ✗ Failed to load venue: {self.state.current_venue}")
+        else:
+            print(f"[WARNING] current_venue is empty - skipping venue load")
 
         # Load stage object
         if self.state.current_stage:
+            print(f"[DEBUG] Loading stage '{self.state.current_stage}'...")
             self.state.current_stage_obj = self._load_stage_from_db(self.state.current_stage)
-            print(f"[INFO] Loaded stage: {self.state.current_stage_obj.name if self.state.current_stage_obj else 'None'}")
+            if self.state.current_stage_obj:
+                print(f"[INFO] ✓ Loaded stage: {self.state.current_stage_obj.name}")
+            else:
+                print(f"[WARNING] ✗ Failed to load stage: {self.state.current_stage}")
+        else:
+            print(f"[WARNING] current_stage is empty - skipping stage load")
 
         # Copy active_npcs to active_npcs_detailed (already Character objects)
         self.state.active_npcs_detailed = self.state.active_npcs
+        print(f"[DEBUG] Copied {len(self.state.active_npcs_detailed)} NPCs to active_npcs_detailed")
+        print(f"[DEBUG] ========== load_enriched_context() END ==========\n")
 
     @start()
     def receive_prompt(self):

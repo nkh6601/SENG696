@@ -39,9 +39,16 @@ class NpcCrew():
     # https://docs.crewai.com/concepts/agents#agent-tools
     @agent
     def npc(self) -> Agent:
+        # Import execution control settings
+        from dnd_mas_host.config import MAX_ITER, MAX_EXECUTION_TIME, MAX_RPM, MAX_RETRY_LIMIT
+
         return Agent(
             config=self.agents_config['NPC'], # type: ignore[index]
-            verbose=True
+            verbose=True,
+            max_iter=MAX_ITER,
+            max_execution_time=MAX_EXECUTION_TIME,
+            max_rpm=MAX_RPM,
+            max_retry_limit=MAX_RETRY_LIMIT
         )
 
     # To learn more about structured task outputs,

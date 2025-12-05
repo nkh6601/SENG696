@@ -134,6 +134,9 @@ class JudgeFlow(Flow[JudgeState]):
         load_dotenv()
         model = os.getenv("MODEL", "gpt-4o-mini")
 
+        # Import execution control settings
+        from dnd_mas_host.config import MAX_ITER, MAX_EXECUTION_TIME, MAX_RPM, MAX_RETRY_LIMIT
+
         return Agent(
             role=config['role'],
             goal=config['goal'],
@@ -141,7 +144,11 @@ class JudgeFlow(Flow[JudgeState]):
             llm=LLM(model=model),
             verbose=True,
             allow_delegation=False,
-            tools=tools  # Use agent-specific tools
+            tools=tools,  # Use agent-specific tools
+            max_iter=MAX_ITER,
+            max_execution_time=MAX_EXECUTION_TIME,
+            max_rpm=MAX_RPM,
+            max_retry_limit=MAX_RETRY_LIMIT
         )
 
     def _load_task_config(self, task_name: str, agent: Agent, output_model: BaseModel) -> Task:
