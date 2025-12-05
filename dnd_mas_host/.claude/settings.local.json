@@ -15,7 +15,8 @@
       "Bash(python -m crewai.__version__:*)",
       "Bash(python test_shared_buffer.py:*)",
       "Bash(python -c:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(python test_gui_layout.py:*)"
     ],
     "deny": [],
     "ask": []

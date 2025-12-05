@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from datetime import time
 from random import randint
 from typing import List, Dict, Optional, Any
 from enum import Enum
@@ -13,6 +14,9 @@ from dnd_mas_host.crews.judge_crew.judge_crew import JudgeFlow
 from dnd_mas_host.crews.narrator_crew.narrator_crew import NarratorFlow
 
 from dnd_mas_host.crews.npc_crew.npc_crew import NpcCrew
+
+from dnd_mas_host.interface.character import Character
+from dnd_mas_host.interface.models import Venue, Stage
 
 
 # Custom exceptions for GUI integration
@@ -35,6 +39,7 @@ class WorkflowStep(str, Enum):
     STEP_4_EVALUATE_DIFFICULTY = "step_4_evaluate_difficulty"
     STEP_5_PERFORM_CHECK = "step_5_perform_check"
     STEP_6_EVALUATE_CONSEQUENCES = "step_6_evaluate_consequences"
+    STEP_6_1_EVALUATE_CONSEQUENCES_COMPLETE = "step_6_1_evaluate_consequences_complete"
     STEP_7_EVALUATE_NPC_REACTIONS = "step_7_evaluate_npc_reactions"
     STEP_8_NPC_DIFFICULTY_CHECK = "step_8_npc_difficulty_check"
     STEP_9_NPC_CONSEQUENCES = "step_9_npc_consequences"
@@ -73,19 +78,23 @@ class HostState(BaseModel):
     effect: Optional[str] = Field(default=None, description="The effect of action evaluated by Judge Agent")
 
     # NPC reactions (current turn)
-    active_npcs: List[Dict[str, Any]] = Field(default_factory=list, description="NPCs in current venue (loaded by GameManager)")
-    npc_reactions_completed: List[Dict[str, Any]] = Field(default_factory=list, description="List of completed NPC reactions with narratives")
+    active_npcs: List[Character] = Field(default_factory=list, description="NPCs in current venue (loaded by GameManager)")
+    reactions_list: Dict[Character, Any] = Field(default_factory=list, description="List of completed NPC reactions with narratives")
 
     # Output (current turn)
     final_output: str = Field(default="", description="Final generated narrative to display to user")
 
-    # Game state snapshot (synced from GameState before kickoff)
+    # Game state snapshot (synced from GameState before kickoff) - now using Character class
     campaign: str = Field(default="Humantown", description="Campaign name")
-    player: str = Field(default="", description="Player character name")
+    main_character: Optional[Character] = Field(default=None, description="Main character (Player Character)")
+    companions: List[Character] = Field(default_factory=list, description="Companion characters")
     current_stage: str = Field(default="", description="Current story stage")
     current_venue: str = Field(default="", description="Current location/venue")
-    character_hp: int = Field(default=0, description="Main character current HP")
-    character_max_hp: int = Field(default=0, description="Main character maximum HP")
+
+    # NEW: Structured objects for enriched context (loaded from MongoDB)
+    current_stage_obj: Optional[Stage] = Field(default=None, description="Full stage object with venues and descriptions")
+    current_venue_obj: Optional[Venue] = Field(default=None, description="Full venue object with environment, NPCs, connections")
+    active_npcs_detailed: List[Character] = Field(default_factory=list, description="Detailed NPC list for current venue")
 
     # Context from previous turn
     previous_prompt: str = Field(default="", description="Previous user prompt for context")
@@ -121,11 +130,10 @@ class HostFlow(Flow[HostState]):
         - flow_complete → False
         - prompt_text, action_extracted, difficulty_check, etc. → defaults
         - final_output → ""
-        - active_npcs, npc_reactions_completed → []
+        - active_npcs, reactions_list → []
 
         Preserves (synced from GameState by GameManager):
-        - campaign, player, current_stage, current_venue
-        - character_hp, character_max_hp
+        - campaign, main_character, companions, current_stage, current_venue
         - previous_prompt, previous_narrative
         """
         self.state.workflow_step = WorkflowStep.STEP_1_RECEIVE_PROMPT
@@ -140,8 +148,88 @@ class HostFlow(Flow[HostState]):
         self.state.skip_difficulty_check = False
         self.state.effect = None
         self.state.active_npcs = []
-        self.state.npc_reactions_completed = []
+        self.state.reactions_list = []
         self.state.final_output = ""
+
+    def _load_venue_from_db(self, venue_name: str) -> Optional[Venue]:
+        """
+        Load venue object from MongoDB.
+
+        Args:
+            venue_name: Name of the venue to load
+
+        Returns:
+            Venue object if found, None otherwise
+        """
+        try:
+            from dnd_mas_host.tools.mongodb_vector_tools import get_mongo_client
+            client = get_mongo_client()
+            db = client["campaign"]
+            venue_doc = db["venues"].find_one({"name": venue_name})
+
+            if venue_doc:
+                return Venue(
+                    name=venue_doc.get("name", ""),
+                    env_desc=venue_doc.get("envDesc", ""),
+                    story_desc=venue_doc.get("storyDesc", ""),
+                    connect_venues=venue_doc.get("connectVenues", []),
+                    npcs_present=venue_doc.get("NPCs", []),
+                    supported_actions=venue_doc.get("actions", [])
+                )
+            return None
+        except Exception as e:
+            print(f"[ERROR] Failed to load venue {venue_name}: {e}")
+            return None
+
+    def _load_stage_from_db(self, stage_name: str) -> Optional[Stage]:
+        """
+        Load stage object from MongoDB.
+
+        Args:
+            stage_name: Name of the stage to load
+
+        Returns:
+            Stage object if found, None otherwise
+        """
+        try:
+            from dnd_mas_host.tools.mongodb_vector_tools import get_mongo_client
+            client = get_mongo_client()
+            db = client["campaign"]
+            stage_doc = db["stages"].find_one({"name": stage_name})
+
+            if stage_doc:
+                return Stage(
+                    name=stage_doc.get("name", ""),
+                    env_desc=stage_doc.get("envDesc", ""),
+                    story_desc=stage_doc.get("storyDesc", ""),
+                    venues=stage_doc.get("venues", []),
+                    start_venue=stage_doc.get("start_venue", ""),
+                    start_narrative=stage_doc.get("start_narrative", "")
+                )
+            return None
+        except Exception as e:
+            print(f"[ERROR] Failed to load stage {stage_name}: {e}")
+            return None
+
+    def load_enriched_context(self):
+        """
+        Load enriched venue and stage objects from MongoDB.
+
+        This method is called after HostState has been synced from GameState
+        to populate the structured object fields for use by sub-flows.
+        """
+        # Load venue object
+        if self.state.current_venue:
+            self.state.current_venue_obj = self._load_venue_from_db(self.state.current_venue)
+            print(f"[INFO] Loaded venue: {self.state.current_venue_obj.name if self.state.current_venue_obj else 'None'}")
+
+        # Load stage object
+        if self.state.current_stage:
+            self.state.current_stage_obj = self._load_stage_from_db(self.state.current_stage)
+            print(f"[INFO] Loaded stage: {self.state.current_stage_obj.name if self.state.current_stage_obj else 'None'}")
+
+        # Copy active_npcs to active_npcs_detailed (already Character objects)
+        self.state.active_npcs_detailed = self.state.active_npcs
 
     @start()
     def receive_prompt(self):
@@ -164,18 +252,23 @@ class HostFlow(Flow[HostState]):
         # Create and run NarratorFlow (validation phase) - async call
         narrator_flow = NarratorFlow()
 
-        # Create and inject GameStateSearchTool
+        # Create and inject GameStateSearchTool into all agent tool lists
         from dnd_mas_host.tools.mongodb_vector_tools import GameStateSearchTool
         game_state_tool = GameStateSearchTool(self.state)
-        narrator_flow.tools.append(game_state_tool)
+        #for agent_name in narrator_flow.tools:
+            #narrator_flow.tools[agent_name].append(game_state_tool)
 
         print(f"[DEBUG] Calling narrator_flow.kickoff_async()...")
 
         await narrator_flow.kickoff_async(inputs={
             "campaign": self.state.campaign,
-            "player": self.state.player,
+            "player": self.state.main_character.name if self.state.main_character else "",
             "prompt": self.state.prompt_text,
-            "current_venue": self.state.current_venue
+            "current_venue": self.state.current_venue,  # Keep for backward compat
+            "current_venue_obj": self.state.current_venue_obj.model_dump() if self.state.current_venue_obj else None,
+            "current_stage_obj": self.state.current_stage_obj.model_dump() if self.state.current_stage_obj else None,
+            "active_npcs": [npc.model_dump() for npc in self.state.active_npcs_detailed],
+            "player_character": self.state.main_character.model_dump() if self.state.main_character else None
         })
 
         # DEBUG: Check narrator flow final state
@@ -212,15 +305,7 @@ class HostFlow(Flow[HostState]):
             self.state.final_output = self.state.validation_message or "Invalid prompt. Please clarify."
 
             # Send validation error to GUI if available
-            if self.gui_queues:
-                from dnd_mas_host.interface.message_types import MessageType, create_message
-
-                print(f"[DEBUG] Sending VALIDATION_ERROR to GUI")
-                self.gui_queues["from_flow"].put(create_message(
-                    MessageType.VALIDATION_ERROR,
-                    {"message": self.state.validation_message or "Invalid prompt. Please clarify."}
-                ))
-
+            # HostFlow NO LONGER sends messages - GameManager handles this
             # Return None to terminate flow without triggering more listeners
             print(f"[DEBUG] Returning None to terminate HostFlow")
             return None
@@ -234,16 +319,20 @@ class HostFlow(Flow[HostState]):
         # Create and run JudgeFlow (difficulty assessment phase) - async call
         judge_flow = JudgeFlow()
 
-        # Create and inject GameStateSearchTool
+        # Create and inject GameStateSearchTool into all agent tool lists
         from dnd_mas_host.tools.mongodb_vector_tools import GameStateSearchTool
-        game_state_tool = GameStateSearchTool(self.state)
-        judge_flow.tools.append(game_state_tool)
+        #game_state_tool = GameStateSearchTool(self.state)
+        #for agent_name in judge_flow.tools:
+        #    judge_flow.tools[agent_name].append(game_state_tool)
 
         await judge_flow.kickoff_async(inputs={
             "campaign": self.state.campaign,
-            "player": self.state.player,
+            "player": self.state.main_character.name if self.state.main_character else "",
             "action": self.state.action_extracted,
-            "roll": 0  # Indicates difficulty assessment phase
+            "roll": 0,  # Indicates difficulty assessment phase
+            "current_venue_obj": self.state.current_venue_obj.model_dump() if self.state.current_venue_obj else None,
+            "player_character": self.state.main_character.model_dump() if self.state.main_character else None,
+            "active_npcs": [npc.model_dump() for npc in self.state.active_npcs_detailed]
         })
 
         # Extract results from flow state
@@ -261,28 +350,30 @@ class HostFlow(Flow[HostState]):
         if self.state.skip_difficulty_check:
             return "skip_to_consequences"
         else:
-            return "perform_check"
+            return "do_perform_check"
 
-    @listen("perform_check")
+    @listen("do_perform_check")
     def perform_check(self):
         """Step 5: Interface performs d20 roll (via GUI if available)"""
         self.state.workflow_step = WorkflowStep.STEP_5_PERFORM_CHECK
         self.state.current_agent = "Interface"
 
         if self.gui_queues:
-            # GUI mode: Request roll from user
+            # GUI mode: Send REQUEST_DIFFICULTY_CHECK, then block waiting for ROLL_D20
             from dnd_mas_host.interface.message_types import MessageType, create_message
 
+            print("[DEBUG] perform_check - Sending REQUEST_DIFFICULTY_CHECK to GUI")
             self.gui_queues["from_flow"].put(create_message(
                 MessageType.REQUEST_DIFFICULTY_CHECK,
                 {
                     "action": self.state.action_extracted.get("action", "Unknown action") if self.state.action_extracted else "Unknown action",
                     "dc": self.state.Action_difficulty.get("difficulty", 10),
-                    "skip_check": self.state.skip_difficulty_check
+                    "skip_check": self.state.skip_difficulty_check,
+                    "state": self.state
                 }
             ))
 
-            # Block until user responds
+            # Block until user responds with roll
             while True:
                 try:
                     msg = self.gui_queues["to_flow"].get(timeout=1.0)
@@ -290,6 +381,7 @@ class HostFlow(Flow[HostState]):
 
                     if msg_type == MessageType.ROLL_D20:
                         self.state.difficulty_check = msg["data"]["roll"]
+                        print(f"[DEBUG] perform_check - Received roll: {self.state.difficulty_check}")
                         break
                     elif msg_type == MessageType.CANCEL_ACTION:
                         raise UserCancelledActionException("User cancelled action")
@@ -313,115 +405,261 @@ class HostFlow(Flow[HostState]):
         # Create and run JudgeFlow (consequence evaluation phase) - async call
         judge_flow = JudgeFlow()
 
-        # Create and inject GameStateSearchTool
+        # Create and inject GameStateSearchTool into all agent tool lists
         from dnd_mas_host.tools.mongodb_vector_tools import GameStateSearchTool
-        game_state_tool = GameStateSearchTool(self.state)
-        judge_flow.tools.append(game_state_tool)
+        #game_state_tool = GameStateSearchTool(self.state)
+        #for agent_name in judge_flow.tools:
+        #    judge_flow.tools[agent_name].append(game_state_tool)
 
         await judge_flow.kickoff_async(inputs={
             "campaign": self.state.campaign,
-            "player": self.state.player,
+            "player": self.state.main_character.name if self.state.main_character else "",
             "action": self.state.action_extracted,
-            "roll": self.state.difficulty_check
+            "roll": self.state.difficulty_check,
+            "current_venue_obj": self.state.current_venue_obj.model_dump() if self.state.current_venue_obj else None,
+            "player_character": self.state.main_character.model_dump() if self.state.main_character else None,
+            "active_npcs": [npc.model_dump() for npc in self.state.active_npcs_detailed]
         })
 
         # Extract results from flow state
         self.state.effect = judge_flow.state.effect
-
+        self.state.workflow_step = WorkflowStep.STEP_6_1_EVALUATE_CONSEQUENCES_COMPLETE
+        
         return self.state
 
     @listen(evaluate_consequences)
-    def process_npc_reactions(self):
-        """Steps 7-9: NPC reactions - Each NPC gets own crew instance"""
+    def pre_process_npc_reactions(self):
+        
+        reactions = self.state.reactions_list
+        
+        
+        char_list = []
+        
+        char_list.extend(self.state.active_npcs)
+        char_list.extend(self.state.companions)
+        
+        char_list = sorted(char_list, key=lambda x: x.dexterity, reverse=True)
+        
+        for char in char_list:
+            reactions[char] = ''          
+        
+        
+        
+        while self.state.workflow_step != WorkflowStep.STEP_6_1_EVALUATE_CONSEQUENCES_COMPLETE:
+            time.sleep(0.1)
+        return self.state
+        
+    @listen(pre_process_npc_reactions)
+    async def process_reactions_sequentially(self):
+        """Steps 7-9: Process reactions one-by-one, ordered by dexterity (high to low)"""
         self.state.workflow_step = WorkflowStep.STEP_7_EVALUATE_NPC_REACTIONS
-        self.state.current_agent = "NPC"
+        self.state.current_agent = "NPC/PC Reactions"
 
-        # TODO: Retrieve NPCs from MongoDB based on current_venue
-        # For now, using empty list if no NPCs loaded
-        # Future: Query venues collection to get NPCs present in current venue
-        # Then query npcs collection for each NPC's full details
+        # Get sorted character list (NPCs + Companions, ordered by DEX high→low)
+        sorted_characters = sorted(
+            self.state.companions + self.state.active_npcs,
+            key=lambda x: x.dexterity if x.dexterity else 10,
+            reverse=True  # High DEX first
+        )
 
-        if not self.state.active_npcs:
-            # No NPCs in venue, skip NPC reactions
-            self.state.npc_reactions_completed = []
+        if not sorted_characters:
+            # No characters to react
+            self.state.reactions_list = {}
             return self.state
 
-        # Process each NPC with separate crew instance
-        # This allows each NPC to maintain independent state and react independently
-        all_reactions = []
+        print(f"[DEBUG] Processing reactions for {len(sorted_characters)} characters")
 
-        for npc in self.state.active_npcs:
-            # Create separate NPC crew for this specific NPC
+        # Process each character sequentially
+        all_reactions = {}
+
+        for character in sorted_characters:
+            print(f"[DEBUG] Processing reaction for: {character.name} (DEX: {character.dexterity})")
+
+            # Step 7.1: Check if character has reaction (NPC Crew Task 1)
             npc_crew = NpcCrew().crew()
 
-            result = npc_crew.kickoff(
-                inputs={
-                    "campaign": self.state.campaign,
-                    "player": self.state.player,
-                    "NPC_role": npc.get("name", "Unknown NPC"),
-                    "NPC_goal": npc.get("intention", ""),
-                    "NPC_background": npc.get("desc", ""),
-                    "action": self.state.action_extracted,
-                    "effect": self.state.effect,
-                    "venue": self.state.current_venue
-                }
-            )
-
-            # Extract reaction from this NPC's crew
             try:
-                # Get last task output (evaluate_reaction)
-                if len(result.tasks_output) > 0:
-                    reactions_output = result.tasks_output[-1].to_dict()
-                    npc_reaction = reactions_output.get("reaction", "")
+                reaction_check_result = await npc_crew.kickoff_async(
+                    inputs={
+                        "campaign": self.state.campaign,
+                        "player": self.state.main_character.name if self.state.main_character else "",
+                        "NPC_role": character.name,
+                        "NPC_goal": character.intentions[0] if character.intentions and len(character.intentions) > 0 else "Survive",
+                        "NPC_background": character.description or character.personality or "",
+                        "action": self.state.action_extracted,
+                        "effect": self.state.effect,
+                        "venue": self.state.current_venue,
+                        "previous_reactions": all_reactions  # Context of earlier reactions
+                    }
+                )
 
-                    # Add NPC identifier to track which NPC reacted
-                    if npc_reaction:
-                        all_reactions.append({
-                            "npc_name": npc.get("name", "Unknown NPC"),
-                            "reaction": npc_reaction,
-                            "reasoning": reactions_output.get("reasoning", "")
-                        })
+                # Parse Task 1 output (ReactionCheckOutput)
+                has_reaction = reaction_check_result.pydantic.has_reaction
+                print(f"[DEBUG] {character.name} has_reaction: {has_reaction}")
+
+                if not has_reaction:
+                    print(f"[DEBUG] {character.name} has no reaction, skipping")
+                    all_reactions[character.name] = {
+                        "has_reaction": False,
+                        "reasoning": reaction_check_result.pydantic.reasoning
+                    }
+                    continue
+
+                # Step 7.2: Extract structured reaction (NPC Crew Task 2)
+                # Note: NPC Crew already ran both tasks sequentially, so result contains both outputs
+                reaction_action = reaction_check_result.tasks_output[1].pydantic  # Second task output
+
+                print(f"[DEBUG] {character.name} reacts: {reaction_action.action_type} → {reaction_action.target}")
+
+                # Step 8: Auto-roll difficulty check
+                self.state.workflow_step = WorkflowStep.STEP_8_NPC_DIFFICULTY_CHECK
+                auto_roll = randint(1, 20)
+                print(f"[DEBUG] {character.name} auto-rolled: {auto_roll}")
+
+                # Step 9: Judge evaluates reaction consequences
+                self.state.workflow_step = WorkflowStep.STEP_9_NPC_CONSEQUENCES
+                judge_flow = JudgeFlow()
+
+                # Inject GameStateSearchTool
+                from dnd_mas_host.tools.mongodb_vector_tools import GameStateSearchTool
+                game_state_tool = GameStateSearchTool(self.state)
+                for agent_name in judge_flow.tools:
+                    judge_flow.tools[agent_name].append(game_state_tool)
+
+                await judge_flow.kickoff_async(inputs={
+                    "campaign": self.state.campaign,
+                    "player": character.name,  # The reacting character
+                    "action": {
+                        "action_type": reaction_action.action_type,
+                        "target": reaction_action.target,
+                        "method": reaction_action.method,
+                        "intent": reaction_action.intent
+                    },
+                    "roll": auto_roll,  # Indicates consequence evaluation phase
+                    "current_venue_obj": self.state.current_venue_obj.model_dump() if self.state.current_venue_obj else None,
+                    "player_character": self.state.main_character.model_dump() if self.state.main_character else None,
+                    "active_npcs": [npc.model_dump() for npc in self.state.active_npcs_detailed]
+                })
+
+                # Extract consequence from JudgeFlow
+                reaction_consequence = judge_flow.state.consequence if hasattr(judge_flow.state, 'consequence') else "No consequence determined"
+
+                # Store complete reaction data
+                all_reactions[character.name] = {
+                    "has_reaction": True,
+                    "action": {
+                        "action_type": reaction_action.action_type,
+                        "target": reaction_action.target,
+                        "method": reaction_action.method,
+                        "intent": reaction_action.intent
+                    },
+                    "roll": auto_roll,
+                    "consequence": reaction_consequence
+                }
+
+                print(f"[DEBUG] {character.name} consequence: {reaction_consequence}")
+
             except Exception as e:
-                print(f"Error parsing NPC reaction for {npc.get('name', 'Unknown')}: {e}")
+                print(f"[ERROR] Failed to process reaction for {character.name}: {e}")
+                import traceback
+                traceback.print_exc()
+                all_reactions[character.name] = {
+                    "has_reaction": False,
+                    "reasoning": f"Error processing reaction: {str(e)}"
+                }
 
-        self.state.npc_reactions_completed = all_reactions
+        # Store all reactions in HostState
+        self.state.reactions_list = all_reactions
+        print(f"[DEBUG] Completed reactions for {len(all_reactions)} characters")
+
         return self.state
 
-    @listen(process_npc_reactions)
+    @listen(process_reactions_sequentially)
     async def generate_narrative(self):
-        """Step 10: Narrator generates narrative using NarratorFlow"""
+        """Step 10: Narrator generates per-reaction narratives"""
         self.state.workflow_step = WorkflowStep.STEP_10_GENERATE_NARRATIVE
         self.state.current_agent = "Narrator"
 
-        # Create and run NarratorFlow (narrative generation phase) - async call
+        all_narratives = []
+
+        # 1. Generate narrative for player's main action
+        print("[DEBUG] Generating narrative for player action")
         narrator_flow = NarratorFlow()
 
-        # Create and inject GameStateSearchTool
+        # Inject GameStateSearchTool
         from dnd_mas_host.tools.mongodb_vector_tools import GameStateSearchTool
         game_state_tool = GameStateSearchTool(self.state)
-        narrator_flow.tools.append(game_state_tool)
+        for agent_name in narrator_flow.tools:
+            narrator_flow.tools[agent_name].append(game_state_tool)
 
         await narrator_flow.kickoff_async(inputs={
             "campaign": self.state.campaign,
-            "player": self.state.player,
+            "player": self.state.main_character.name if self.state.main_character else "",
             "action": self.state.action_extracted,
             "effect": self.state.effect,
-            "reactions": self.state.npc_reactions_completed,
-            "current_venue": self.state.current_venue
+            "reactions": {},  # No reactions yet for player action narrative
+            "current_venue": self.state.current_venue,
+            "current_venue_obj": self.state.current_venue_obj.model_dump() if self.state.current_venue_obj else None,
+            "current_stage_obj": self.state.current_stage_obj.model_dump() if self.state.current_stage_obj else None,
+            "active_npcs": [npc.model_dump() for npc in self.state.active_npcs_detailed],
+            "player_character": self.state.main_character.model_dump() if self.state.main_character else None
         })
 
-        # Extract results from flow state
-        self.state.final_output = narrator_flow.state.narrative
+        player_narrative = narrator_flow.state.narrative
+        all_narratives.append(f"**{self.state.main_character.name}'s Action:**\n{player_narrative}")
+        print(f"[DEBUG] Player narrative generated: {len(player_narrative)} chars")
 
-        # Update game state from narrator
+        # Update game state from player action
         state_updates = narrator_flow.state.state_updates
-        self.state.character_hp = state_updates.get("character_hp", self.state.character_hp)
+        if self.state.main_character and "character_hp" in state_updates:
+            self.state.main_character.update_hp(state_updates["character_hp"])
         self.state.current_venue = state_updates.get("current_venue", self.state.current_venue)
+
+        # 2. Generate narrative for all reactions in a single batch call
+        if self.state.reactions_list:
+            print(f"[DEBUG] Generating narratives for {len(self.state.reactions_list)} NPC reactions in batch")
+
+            # Prepare NPC reaction data for batch processing
+            npc_reaction_list = []
+            for char_name, reaction_data in self.state.reactions_list.items():
+                if not reaction_data.get("has_reaction"):
+                    continue  # Skip non-reactions
+
+                # Find NPC character object
+                npc_char = next((npc for npc in self.state.active_npcs_detailed if npc.name == char_name), None)
+                npc_reaction_list.append({
+                    "npc_name": char_name,
+                    "personality": npc_char.personality if npc_char else "",
+                    "description": npc_char.description if npc_char else "",
+                    "action": reaction_data.get("action", {}),
+                    "roll": reaction_data.get("roll", 0),
+                    "consequence": reaction_data.get("consequence", "")
+                })
+
+            # Single NarratorFlow call for all NPC narratives
+            if npc_reaction_list:
+                reaction_narrator_flow = NarratorFlow()
+                reaction_narrator_flow.state.campaign = self.state.campaign
+                reaction_narrator_flow.state.current_venue_obj = self.state.current_venue_obj.model_dump() if self.state.current_venue_obj else None
+                reaction_narrator_flow.state.active_npcs = [npc.model_dump() for npc in self.state.active_npcs_detailed]
+                reaction_narrator_flow.state.npc_reactions = npc_reaction_list
+
+                # Call the batch NPC narrative generation method
+                reaction_narrator_flow.generate_npc_narratives_batch()
+
+                npc_narratives = reaction_narrator_flow.state.npc_narratives
+                if npc_narratives:
+                    all_narratives.append(f"\n**NPC Reactions:**\n{npc_narratives}")
+                    print(f"[DEBUG] Batch NPC narratives generated: {len(npc_narratives)} chars")
+
+        # 3. Combine all narratives
+        self.state.final_output = "\n\n".join(all_narratives)
+        print(f"[DEBUG] Total narrative length: {len(self.state.final_output)} chars")
 
         return self.state
 
     @listen(generate_narrative)
-    def display_output(self):
+    async def display_output(self):
         """Step 11: Interface displays"""
         self.state.workflow_step = WorkflowStep.STEP_11_DISPLAY_OUTPUT
         self.state.current_agent = "Interface"
@@ -498,6 +736,3 @@ def run_with_trigger():
     except Exception as e:
         raise Exception(f"An error occurred while running the flow with trigger: {e}")
 
-
-if __name__ == "__main__":
-    kickoff()

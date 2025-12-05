@@ -13,9 +13,11 @@ class ReactionCheckOutput(BaseModel):
 
 
 class ReactionOutput(BaseModel):
-    """Output model for evaluate_reaction task"""
-    reaction: str = Field(description="Description of the NPC's reaction")
-    reasoning: str = Field(description="Reasoning about the reaction")
+    """Output model for extract_reaction task - structured like player actions"""
+    action_type: str = Field(description="Type of reaction action (attack, cast spell, move, dodge, etc.)")
+    target: str = Field(description="Target of the reaction")
+    method: str = Field(description="Method or approach for the reaction")
+    intent: str = Field(description="Character's intent with this reaction")
 
 
 # If you want to run a snippet of code before or after the crew starts,
@@ -53,9 +55,9 @@ class NpcCrew():
         )
 
     @task
-    def evaluate_reaction(self) -> Task:
+    def extract_reaction(self) -> Task:
         return Task(
-            config=self.tasks_config['evaluate_reaction'], # type: ignore[index]
+            config=self.tasks_config['extract_reaction'], # type: ignore[index]
             output_pydantic=ReactionOutput
         )
 

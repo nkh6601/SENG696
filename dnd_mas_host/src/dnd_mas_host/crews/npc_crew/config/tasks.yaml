@@ -1,17 +1,65 @@
 if_reaction:
   description: >
-    Review the context you got and determine if any reaction to the {player}'s action is possible that align with the goal.  
+    Analyze the player's action, its effects, and previous reactions from other characters to determine if this character needs to react.
+
+    INSTRUCTIONS:
+    - DO NOT use vector search tools - all context provided
+    - Evaluate based on NPC personality, goals, and tactical situation
+    - Consider action economy (one reaction per round)
+    - Maximum tool usage: 0
+
+    Consider the following factors:
+    - Character's personality, goals, and current situation
+    - The direct impact on this character or related entities
+    - Previous reactions from other characters (available in previous_reactions input)
+    - Combat threat assessment and tactical positioning
+    - Action economy and available options (action, bonus action, reaction, movement)
+
+    This character should react if:
+    - They are directly threatened or harmed
+    - Their goals are impacted by the action
+    - They have a tactical advantage to exploit
+    - Their personality/nature compels them to respond
+
+    Output a boolean decision with clear reasoning explaining why they should or should not react.
   expected_output: >
-    A JSON format data, which include:
-    - A boolean value indicate if any reaction.     
-    - A reasoning about the boolean result.
+    A structured ReactionCheckOutput in JSON format with:
+    - has_reaction: boolean (true if character should react, false otherwise)
+    - reasoning: detailed explanation of the decision, considering personality, tactical situation, and impact
   agent: NPC
 
-evaluate_reaction:
+extract_reaction:
   description: >
-    Review the context you got and determine the reaction to the {player}'s action that is possible and align with the goal.  
+    Generate a structured reaction action for this character, using the same format as player actions.
+    The reaction should be tactically sound, in-character, and appropriate to the situation.
+
+    INSTRUCTIONS:
+    - DO NOT use vector search tools - all NPC capabilities provided in context
+    - Use character's stated abilities, spells, equipment from inputs
+    - Consider tactical factors from current venue and situation
+    - Maximum tool usage: 0
+
+    Consider the character's capabilities:
+    - Available actions (attack, cast spell, move, dodge, dash, disengage, help, hide, use item, etc.)
+    - Known spells and spell slots (if spellcaster)
+    - Equipment and weapons available
+    - Movement speed and positioning
+    - Special abilities and class features
+
+    Consider tactical factors:
+    - Range to target and allies
+    - Cover and terrain
+    - Action economy optimization
+    - Coordinating with or responding to previous reactions
+
+    The reaction should reflect the character's personality and decision-making style while being mechanically valid under D&D 5E rules.
+
+    IMPORTANT: Output must use the structured format with four fields: action_type, target, method, and intent.
+    Do NOT output a text description - use the structured format only.
   expected_output: >
-    A JSON format data, which include:
-    - A text description of the reaction, objective and with all necessary information.      
-    - A reasoning about the boolean result.
+    A structured ReactionOutput in JSON format with:
+    - action_type: type of action (e.g., "attack", "cast spell", "move", "dodge", "use item", "help ally")
+    - target: who or what is targeted by this reaction (e.g., "the attacking goblin", "nearest ally", "doorway")
+    - method: how the action is performed (e.g., "longsword slash", "cast Cure Wounds", "sprint toward cover")
+    - intent: strategic goal of this reaction (e.g., "eliminate threat", "protect ally", "gain tactical position")
   agent: NPC

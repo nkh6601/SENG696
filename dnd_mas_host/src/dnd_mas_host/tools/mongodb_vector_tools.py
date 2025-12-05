@@ -404,6 +404,11 @@ class GameStateSearchTool(BaseTool):
     )
     args_schema: type[BaseModel] = GameStateSearchInput
 
+    # Pydantic fields for state storage
+    host_state: Any = None  # HostState reference (can't use forward ref due to circular import)
+    mongo_client: Any = None
+    db: Any = None
+
     def __init__(self, host_state):
         """
         Initialize GameStateSearchTool with HostState reference
@@ -411,8 +416,7 @@ class GameStateSearchTool(BaseTool):
         Args:
             host_state: HostState object from main.py containing current game state
         """
-        super().__init__()
-        self.host_state = host_state
+        super().__init__(host_state=host_state)
         self.mongo_client = MongoClient(MongoDBVectorSearchConfig.MONGO_URI)
         self.db = self.mongo_client[MongoDBVectorSearchConfig.DATABASE_CAMPAIGN]
 
@@ -428,38 +432,37 @@ class GameStateSearchTool(BaseTool):
         """
         results = {}
 
-        # Query HostState fields directly
-        hoststate_fields = ['campaign', 'player', 'current_venue', 'current_stage',
-                            'character_hp', 'character_max_hp']
+        # Get main character from HostState
+        main_char = self.host_state.main_character if self.host_state and self.host_state.main_character else None
 
+        # Query HostState and Character fields
         for field in query_fields:
-            if field in hoststate_fields and hasattr(self.host_state, field):
-                results[field] = getattr(self.host_state, field)
+            if field == 'campaign' and hasattr(self.host_state, 'campaign'):
+                results['campaign'] = self.host_state.campaign
+            elif field == 'player' and main_char:
+                results['player'] = main_char.name
+            elif field == 'current_venue' and hasattr(self.host_state, 'current_venue'):
+                results['current_venue'] = self.host_state.current_venue
+            elif field == 'current_stage' and hasattr(self.host_state, 'current_stage'):
+                results['current_stage'] = self.host_state.current_stage
+            elif field == 'character_hp' and main_char:
+                results['character_hp'] = main_char.hp
+            elif field == 'character_max_hp' and main_char:
+                results['character_max_hp'] = main_char.max_hp
 
-        # Query MongoDB for extended character data if needed
+        # Query Character object for extended character data
         extended_fields = ['character_inventory', 'character_spell_slots', 'active_conditions']
-        if any(f in query_fields for f in extended_fields):
+        if any(f in query_fields for f in extended_fields) and main_char:
             try:
-                # Find player character document
-                player_doc = self.db.player_characters.find_one(
-                    {"name": self.host_state.player}
-                )
-
-                if player_doc:
-                    if 'character_inventory' in query_fields:
-                        results['character_inventory'] = player_doc.get('inventory', [])
-                    if 'character_spell_slots' in query_fields:
-                        results['character_spell_slots'] = player_doc.get('spell_slots', {})
-                    if 'active_conditions' in query_fields:
-                        results['active_conditions'] = player_doc.get('active_conditions', [])
-                else:
-                    # Player character not found in DB - return empty values
-                    if 'character_inventory' in query_fields:
-                        results['character_inventory'] = []
-                    if 'character_spell_slots' in query_fields:
-                        results['character_spell_slots'] = {}
-                    if 'active_conditions' in query_fields:
-                        results['active_conditions'] = []
+                if 'character_inventory' in query_fields:
+                    # Get inventory from Character object
+                    results['character_inventory'] = main_char.inventory if main_char.inventory else []
+                if 'character_spell_slots' in query_fields:
+                    # Get spell slots from Character object
+                    results['character_spell_slots'] = main_char.spell_slots if main_char.spell_slots else {}
+                if 'active_conditions' in query_fields:
+                    # Get conditions from Character object
+                    results['active_conditions'] = main_char.conditions if main_char.conditions else []
 
             except Exception as e:
                 print(f"Error querying extended character data: {e}")
@@ -683,9 +686,7 @@ class RuleVectorSearchTool(BaseTool):
             name = rule.get('name', 'Unknown')
             desc = rule.get('desc', 'N/A')
 
-            # Truncate description if too long
-            if isinstance(desc, str) and len(desc) > 300:
-                desc = desc[:300] + "..."
+            # No truncation - agents need full rule text for accurate decisions
 
             formatted_results.append(
                 f"{i}. {name} (Score: {rule.get('search_score', 0):.3f})\n"

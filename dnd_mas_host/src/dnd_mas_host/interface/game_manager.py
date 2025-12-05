@@ -174,8 +174,7 @@ class GameManager:
         Sync GameState → HostState before kickoff().
 
         Copies:
-        - campaign, player, current_stage, current_venue
-        - character_hp, character_max_hp
+        - campaign, main_character, companions, current_stage, current_venue
         - active_npcs (query MongoDB venues collection for NPCs in current venue)
         - previous_prompt, previous_narrative (from last conversation turn)
         """
@@ -184,13 +183,12 @@ class GameManager:
 
         print(f"[GameManager] Syncing GameState → HostState")
 
-        # Sync basic game state from main character
+        # Sync basic game state using Character objects
         self.host_flow.state.campaign = self.game_state.campaign
-        self.host_flow.state.player = self.game_state.main_character.name if self.game_state.main_character else ""
+        self.host_flow.state.main_character = self.game_state.main_character
+        self.host_flow.state.companions = self.game_state.companions
         self.host_flow.state.current_stage = self.game_state.current_stage
         self.host_flow.state.current_venue = self.game_state.current_venue
-        self.host_flow.state.character_hp = self.game_state.main_character.hp if self.game_state.main_character else 0
-        self.host_flow.state.character_max_hp = self.game_state.main_character.max_hp if self.game_state.main_character else 0
 
         # Sync conversation context (previous turn)
         if self.game_state.conversation_history:
@@ -198,7 +196,7 @@ class GameManager:
             self.host_flow.state.previous_prompt = last_turn.prompt
             self.host_flow.state.previous_narrative = last_turn.narrative
 
-        # Query active NPCs in current venue from MongoDB
+        # Query active NPCs in current venue from MongoDB and convert to Character objects
         try:
             venue_doc = self.campaign_db["venues"].find_one({"name": self.game_state.current_venue})
             if venue_doc and "NPCs" in venue_doc:
@@ -207,7 +205,9 @@ class GameManager:
                 for npc_id in npc_ids:
                     npc_doc = self.campaign_db["NPCs"].find_one({"_id": npc_id})
                     if npc_doc:
-                        active_npcs.append(npc_doc)
+                        # Convert NPC document to Character object
+                        npc_character = Character.from_npc_document(npc_doc)
+                        active_npcs.append(npc_character)
                 self.host_flow.state.active_npcs = active_npcs
                 print(f"[GameManager]   - Loaded {len(active_npcs)} NPCs for venue '{self.game_state.current_venue}'")
         except Exception as e:
@@ -219,7 +219,8 @@ class GameManager:
         Sync HostState → GameState after kickoff().
 
         Updates:
-        - character_hp (from consequences)
+        - main_character (from HostState, which may have been modified by consequences)
+        - companions (synced back from HostState)
         - current_venue (if changed by narrative)
         - current_stage (if advanced)
         - Add ConversationTurn to conversation_history
@@ -233,9 +234,9 @@ class GameManager:
         # Store HP before update for conversation history
         hp_before = self.game_state.main_character.hp if self.game_state.main_character else 0
 
-        # Update main character HP from host flow result
-        if self.game_state.main_character:
-            self.game_state.main_character.update_hp(self.host_flow.state.character_hp)
+        # Sync character objects back from HostState (may have been modified)
+        self.game_state.main_character = self.host_flow.state.main_character
+        self.game_state.companions = self.host_flow.state.companions
 
         # Update location
         self.game_state.current_venue = self.host_flow.state.current_venue
@@ -344,6 +345,9 @@ class GameManager:
         except Exception as e:
             print(f"[GameManager] WARNING: Failed to save game: {e}")
 
+
+
+
     def run(self):
         """
         Main game loop (runs in background thread).
@@ -367,14 +371,17 @@ class GameManager:
         if not self.initialize_game():
             self.from_flow_queue.put(create_message(
                 MessageType.FLOW_ERROR,
-                {"error": "Failed to initialize game from MongoDB"}
+                {"error": "Failed to initialize game from MongoDB",
+                 "state": self.host_flow.state
+                 }
             ))
             return
 
         # Step 2: Send FLOW_READY + initial narrative to GUI
         self.from_flow_queue.put(create_message(
             MessageType.FLOW_READY,
-            {"message": "Game initialized successfully"}
+            {"message": "Game initialized successfully",
+                 "state": self.host_flow.state}
         ))
 
         # Send start narrative as first message
@@ -382,13 +389,7 @@ class GameManager:
             MessageType.DISPLAY_NARRATIVE,
             {
                 "narrative": self.game_state.start_narrative,
-                "hp": self.game_state.main_character.hp if self.game_state.main_character else 0,
-                "max_hp": self.game_state.main_character.max_hp if self.game_state.main_character else 0,
-                "venue": self.game_state.current_venue,
-                "stage": self.game_state.current_stage,
-                "conversation_history": [],
-                "game_over": False,
-                "victory": False
+                 "state": self.host_flow.state
             }
         ))
 
@@ -420,38 +421,53 @@ class GameManager:
                         # Step 3b: Reset HostState workflow fields
                         self.host_flow.reset_state()
 
+                        # Step 3c: Load enriched context (venue/stage objects from MongoDB)
+                        print("[GameManager] Loading enriched context...")
+                        self.host_flow.load_enriched_context()
+
                         # Set current prompt
                         self.host_flow.state.prompt_text = prompt
 
-                        # Step 3c: Execute host_flow.kickoff() (reuse instance)
+                        # Step 3d: Execute host_flow.kickoff() (reuse instance)
                         print("[GameManager] Executing HostFlow.kickoff()...")
                         result = self.host_flow.kickoff()
                         print("[GameManager] HostFlow.kickoff() completed")
 
-                        # Step 3d: Sync HostState → GameState
+                        # Step 3d: Check workflow outcome and send appropriate message
+
+                        # Case 1: Validation failed - send VALIDATION_ERROR
+                        if not self.host_flow.state.prompt_valid:
+                            print("[GameManager] Validation failed, sending VALIDATION_ERROR")
+                            self.from_flow_queue.put(create_message(
+                                MessageType.VALIDATION_ERROR,
+                                {
+                                    "message": self.host_flow.state.validation_message or "Invalid prompt. Please clarify.",
+                                    "state": self.host_flow.state
+                                }
+                            ))
+                            continue  # Skip rest of processing, wait for new prompt
+
+                        # Case 2: Normal completion - sync state and send DISPLAY_NARRATIVE
+                        # (HostFlow handles REQUEST_DIFFICULTY_CHECK internally)
+                        # Step 3e: Sync HostState → GameState
                         self.sync_host_to_game_state()
 
-                        # Step 3e: Check win/loss conditions
+                        # Step 3f: Check win/loss conditions
                         game_status = self.check_win_loss_conditions()
                         if game_status:
                             print(f"[GameManager] Game ended: {game_status}")
 
-                        # Step 3f: Save to MongoDB (every 5 turns or on game end)
+                        # Step 3g: Save to MongoDB (every 5 turns or on game end)
                         if self.game_state.total_turns % 5 == 0 or self.game_state.game_over:
                             self.save_game_to_mongodb()
 
-                        # Step 3g: Send DISPLAY_NARRATIVE to GUI
+                        # Step 3h: Send DISPLAY_NARRATIVE to GUI
                         self.from_flow_queue.put(create_message(
                             MessageType.DISPLAY_NARRATIVE,
                             {
                                 "narrative": self.host_flow.state.final_output,
-                                "hp": self.game_state.main_character.hp if self.game_state.main_character else 0,
-                                "max_hp": self.game_state.main_character.max_hp if self.game_state.main_character else 0,
-                                "venue": self.game_state.current_venue,
-                                "stage": self.game_state.current_stage,
-                                "conversation_history": [turn.model_dump() for turn in self.game_state.conversation_history],
-                                "game_over": self.game_state.game_over,
-                                "victory": self.game_state.victory
+                                "state": self.host_flow.state,
+                                "game_status": game_status  # victory/defeat/None
                             }
                         ))
 
@@ -475,7 +491,8 @@ class GameManager:
                             MessageType.FLOW_ERROR,
                             {
                                 "error": error_msg,
-                                "traceback": error_trace
+                                "traceback": error_trace,
+                                "state": self.host_flow.state
                             }
                         ))
 
@@ -487,7 +504,8 @@ class GameManager:
                     MessageType.FLOW_ERROR,
                     {
                         "error": f"Thread error: {str(e)}",
-                        "traceback": traceback.format_exc()
+                        "traceback": traceback.format_exc(),
+                        "state": self.host_flow.state
                     }
                 ))
 

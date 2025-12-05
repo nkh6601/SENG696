@@ -9,12 +9,7 @@ check_feasibility:
     Player: {player}
     Action Details: {action}
 
-    TOOL USAGE GUIDANCE:
-    - Use GameStateSearchTool to check player's resources (spell slots, inventory, HP, conditions)
-    - Use SpellVectorSearchTool to verify spell components, casting time, range if casting spell
-    - Use ClassVectorSearchTool to verify class feature availability
-    - Use RuleVectorSearchTool to verify action economy, movement rules, combat rules
-    - Use EquipmentVectorSearchTool to verify required equipment availability
+    Please only use tools when crucial information is missing to complete the task, and limit their usage to a maximum of three.   
 
     Consider the following aspects:
     - Action Economy: Does the player have the action/bonus action/reaction available?
@@ -45,14 +40,22 @@ assign_difficulty:
 
     Campaign: {campaign}
     Player: {player}
+    Player Character: {player_character}
+    Current Venue: {current_venue_obj}
+    Active NPCs: {active_npcs}
     Action Details: {action}
 
-    TOOL USAGE GUIDANCE:
-    - Use MonsterVectorSearchTool to retrieve enemy stats (AC, HP, abilities) if action involves combat
-    - Use VenueVectorSearchTool to understand environmental modifiers (terrain, lighting, hazards)
-    - Use GameStateSearchTool to check player's current HP, conditions affecting difficulty
-    - Use RuleVectorSearchTool to reference official DC guidelines for similar actions
-    - Use ConditionVectorSearchTool to apply advantage/disadvantage from conditions
+    VENUE MODIFIERS (from current_venue_obj):
+    - Environment: Extract from env_desc field (lighting, terrain, weather, hazards)
+    - Conditions: darkness, difficult terrain, obstacles, etc.
+
+    INSTRUCTIONS:
+    - Use MonsterVectorSearchTool to get enemy AC/saves if attacking NPC
+    - Use RuleVectorSearchTool for DC guidelines (PHB Chapter 8)
+    - Use ConditionVectorSearchTool if player has status effects
+    - DO NOT search VenueVectorSearchTool - modifiers provided in current_venue_obj
+    - Check player_character conditions for disadvantage/advantage
+    - Maximum tool usage: 2
 
     The difficulty level is indicated by a number between -1 to 21:
     - -1: Automatically succeeds (no check needed)
@@ -63,14 +66,13 @@ assign_difficulty:
     - 21: Impossible (automatically fails)
 
     Consider the following factors when assigning difficulty:
-    - Character abilities and proficiencies
-    - Environmental conditions (lighting, terrain, weather)
-    - Enemy or obstacle characteristics
+    - Character abilities and proficiencies (from player_character)
+    - Environmental conditions from current_venue_obj
+    - Enemy or obstacle characteristics (search Monster tool if needed)
     - Situational modifiers (advantage, disadvantage)
     - Time pressure or stress factors
     - Equipment and tools available
 
-    Search the D&D 5E 2014 rule book for relevant DC guidelines and modifiers.
     Provide clear reasoning for the assigned difficulty level.
 
     This is ONLY a difficulty assignment - if it's something related to feasibility or consequences,
@@ -91,15 +93,20 @@ evaluate_consequence:
 
     Campaign: {campaign}
     Player: {player}
+    Player Character: {player_character}
+    Current Venue: {current_venue_obj}
+    Active NPCs: {active_npcs}
     Action Details: {action}
     Roll Result: {roll}
 
-    TOOL USAGE GUIDANCE:
-    - Use MonsterVectorSearchTool to retrieve damage dice, HP, resistances for combat consequences
-    - Use SpellVectorSearchTool to retrieve spell damage, duration, effects
-    - Use ConditionVectorSearchTool to determine condition effects to apply (blinded, stunned, etc.)
-    - Use GameStateSearchTool to get current HP for damage calculation
-    - Use RuleVectorSearchTool to verify combat damage rules, death saves, healing rules
+    INSTRUCTIONS:
+    - Use MonsterVectorSearchTool for damage calculations
+    - Use SpellVectorSearchTool for spell effects
+    - Use ConditionVectorSearchTool for status conditions
+    - Use RuleVectorSearchTool for edge cases
+    - DO NOT search for venue/NPC info - provided in context
+    - Update HP, conditions, resources based on D&D 5E rules
+    - Maximum tool usage: 2
 
     Based on the success/failure outcome, determine:
     - HP changes (damage dealt/taken, healing)
@@ -110,8 +117,8 @@ evaluate_consequence:
     - Secondary effects (reactions triggered, opportunity attacks)
     - Story impacts (NPC reactions, quest progress)
 
-    Combine D&D 5E 2014 rules, {campaign} information, current game status, and common sense.
-    Describe impacts on {player}, other characters, environment, and story.
+    Combine D&D 5E 2014 rules, {campaign} information, current game status from provided context, and common sense.
+    Describe impacts on {player}, other characters (from active_npcs), environment (from current_venue_obj), and story.
     Estimate the in-game time the action took.
 
     Focus on mechanical effects - the Narrator will handle narrative descriptions.

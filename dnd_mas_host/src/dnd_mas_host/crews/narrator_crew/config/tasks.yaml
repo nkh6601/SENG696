@@ -7,22 +7,27 @@ validate_prompt:
 
     Campaign: {campaign}
     Player: {player}
-    Current Venue: {current_venue}
+    Player Character: {player_character}
+    Current Venue: {current_venue_obj}
+    Current Stage: {current_stage_obj}
+    Active NPCs: {active_npcs}
     Player's Prompt: "{prompt}"
 
-    TOOL USAGE GUIDANCE:
-    - Use VenueVectorSearchTool to verify current venue details and connected venues
-    - Use NPCVectorSearchTool to verify NPCs mentioned in prompt are present in venue
-    - Use GameStateSearchTool to verify items/equipment referenced are in inventory
-    - Use StageVectorSearchTool to verify actions align with current story stage
+    INSTRUCTIONS:
+    - DO NOT use vector search tools - all context is provided above
+    - Verify referenced NPCs exist in active_npcs list
+    - Check if action is possible in current venue environment (current_venue_obj)
+    - Detect conflicts with game state (e.g., targeting dead NPCs, using items not in inventory)
+    - Flag ambiguous actions requiring clarification
+    - Maximum tool usage: 0 (all data provided in context)
 
     Determine:
-    - Does the prompt conflict with current game state (e.g., referencing NPCs/item/location not present)?
-    - Does the prompt request an impossible action (e.g., using items not in inventory)?
-    - Is the prompt ambiguous or unclear to an extend largely affect understanding the action (needs clarification)?
+    - Does the prompt conflict with current game state?
+    - Does the prompt request an impossible action?
+    - Is the prompt ambiguous or unclear to an extent largely affecting understanding the action?
     - Does the prompt align with campaign story and current venue?
 
-    If invalid, provide a clear message stating the invalid reason of the action and ask for antoher prompt in one sentence.
+    If invalid, provide a clear message stating the invalid reason and ask for another prompt in one sentence.
     If ambiguous, provide a clear message requesting clarification from the player in one sentence.
     If valid, confirm the prompt can proceed to action extraction.
 
@@ -41,13 +46,18 @@ action_extract:
 
     Campaign: {campaign}
     Player: {player}
-    Current Venue: {current_venue}
+    Player Character: {player_character}
+    Current Venue: {current_venue_obj}
+    Active NPCs: {active_npcs}
     Player's Prompt: "{prompt}"
 
-    TOOL USAGE GUIDANCE:
-    - Use VenueVectorSearchTool to retrieve venue context (environment, features, objects)
-    - Use NPCVectorSearchTool to retrieve target NPC details if action involves NPC interaction
-    - Use GameStateSearchTool to include player status in action context
+    INSTRUCTIONS:
+    - DO NOT use vector search tools - all context is provided above
+    - Extract action details from prompt using provided context
+    - Use player_character inventory/spell slots to validate capability
+    - Use active_npcs list to identify targets
+    - Use current_venue_obj supported_actions to validate action type
+    - Maximum tool usage: 0 (all data provided in context)
 
     Extract the following components:
     - action_type: Type of action (e.g., attack, investigate, talk, move, cast_spell)
@@ -78,17 +88,22 @@ narrative_task:
 
     Campaign: {campaign}
     Player: {player}
-    Current Venue: {current_venue}
+    Player Character: {player_character}
+    Current Venue: {current_venue_obj}
+    Current Stage: {current_stage_obj}
+    Active NPCs: {active_npcs}
     Action Taken: {action}
     Action Effect: {effect}
     NPC Reactions: {reactions}
 
-    TOOL USAGE GUIDANCE:
-    - Use VenueVectorSearchTool to retrieve venue descriptions for atmospheric details
-    - Use NPCVectorSearchTool to retrieve NPC personality, speech patterns for dialogue
-    - Use StageVectorSearchTool to retrieve story context for narrative alignment
-    - Use MonsterVectorSearchTool to retrieve monster descriptions for combat narratives
-    - Use SpellVectorSearchTool to retrieve spell descriptions for magic narratives
+    INSTRUCTIONS:
+    - Use MonsterVectorSearchTool ONLY for combat descriptions (enemy abilities)
+    - Use SpellVectorSearchTool ONLY for spell effect descriptions
+    - DO NOT search for venue, NPC, or stage info - provided in context
+    - Use current_venue_obj for atmospheric descriptions
+    - Use active_npcs for NPC personality/dialogue
+    - Use current_stage_obj for story context
+    - Maximum tool usage: 2 (Monster + Spell only if needed)
 
     Create a compelling 1-3 sentence narrative that:
     - Combines third-person descriptions with character dialogue where appropriate
@@ -110,3 +125,40 @@ narrative_task:
     - narrative: Generated narrative text
     - state_updates: Game state updates (HP changes, venue changes, NPC status, etc.)
   agent: narrative_generator
+
+generate_npc_narratives:
+  description: >
+    Generate narratives for all NPC reactions in a single batch.
+
+    Campaign: {campaign}
+    Current Venue: {venue}
+    NPC Reactions: {npc_reactions}
+
+    NPC_REACTIONS FORMAT:
+    [
+      {{
+        "name": "NPC name",
+        "personality": "NPC personality traits",
+        "description": "NPC physical description",
+        "action": {{"action_type": "...", "target": "...", "method": "..."}},
+        "roll_result": 15,
+        "consequence": "Effect of NPC action"
+      }},
+      ...
+    ]
+
+    INSTRUCTIONS:
+    - Generate a cohesive narrative for ALL NPC reactions
+    - Use MonsterVectorSearchTool ONLY for combat abilities
+    - Use SpellVectorSearchTool ONLY for spell effects
+    - DO NOT search for NPC info - provided in npc_reactions
+    - Order reactions logically (e.g., faster NPCs first)
+    - Show personality through dialogue and actions
+    - Maximum tool usage: 2 (Monster + Spell only if needed)
+
+    Create a flowing narrative that combines all NPC actions, showing their distinct
+    personalities and tactical decisions. Use dialogue and environmental details to
+    bring each NPC to life.
+  expected_output: >
+    Combined narrative string describing all NPC reactions in sequence.
+  agent: npc_narrative_generator

@@ -75,6 +75,7 @@ class GameState(BaseModel):
     last_saved: Optional[datetime] = None
     total_turns: int = 0
 
+
     def to_mongodb_dict(self) -> Dict[str, Any]:
         """
         Convert GameState to MongoDB document format.

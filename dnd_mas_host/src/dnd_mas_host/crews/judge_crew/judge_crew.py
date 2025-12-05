@@ -32,11 +32,16 @@ class ConsequenceOutput(BaseModel):
 # Flow State Model
 class JudgeState(BaseModel):
     """State model for JudgeFlow"""
-    # Inputs
+    # Inputs (basic)
     campaign: str = ""
     player: str = ""
     action: Dict[str, Any] = Field(default_factory=dict)
     roll: int = 0
+
+    # NEW: Enriched context objects (passed from HostFlow)
+    current_venue_obj: Optional[Dict[str, Any]] = None  # Venue object as dict
+    player_character: Optional[Dict[str, Any]] = None  # Player character object as dict
+    active_npcs: list = Field(default_factory=list)  # Character objects as dicts
 
     # Phase tracking
     workflow_phase: str = ""  # "difficulty_assessment" or "consequence_evaluation"
@@ -67,41 +72,54 @@ class JudgeFlow(Flow[JudgeState]):
         self.config_dir = Path(__file__).parent / "config"
         self.tools = self._create_tools()
 
-    def _create_tools(self) -> list:
-        """Create all tools for Judge agents"""
+    def _create_tools(self) -> dict:
+        """
+        Create tools for each Judge agent based on Tool Assignment Matrix.
+
+        Returns a dict mapping agent names to their specific tool lists.
+        """
         from dnd_mas_host.tools.mongodb_vector_tools import (
-            NPCVectorSearchTool,
-            VenueVectorSearchTool,
-            StageVectorSearchTool,
-            UniversalVectorSearchTool,
+            # VenueVectorSearchTool,       # DISABLED - use passed state
             MonsterVectorSearchTool,
             SpellVectorSearchTool,
             RuleVectorSearchTool,
-            EquipmentVectorSearchTool,
             ClassVectorSearchTool,
-            ConditionVectorSearchTool,
-            MagicItemVectorSearchTool
+            ConditionVectorSearchTool
         )
 
-        return [
-            # Campaign tools
-            NPCVectorSearchTool(),
-            VenueVectorSearchTool(),
-            StageVectorSearchTool(),
-            UniversalVectorSearchTool(),
+        return {
+            # Feasibility Agent: Validate action legality
+            "feasibility_agent": [
+                RuleVectorSearchTool(),        # D&D 5E rules
+                SpellVectorSearchTool(),       # Spell components/requirements
+                ClassVectorSearchTool(),       # Class features/abilities
+            ],
 
-            # 5E database tools
-            MonsterVectorSearchTool(),
-            SpellVectorSearchTool(),
-            RuleVectorSearchTool(),
-            EquipmentVectorSearchTool(),
-            ClassVectorSearchTool(),
-            ConditionVectorSearchTool(),
-            MagicItemVectorSearchTool()
-        ]
+            # Difficulty Agent: Assign DC
+            "difficulty_agent": [
+                MonsterVectorSearchTool(),     # Enemy stats
+                RuleVectorSearchTool(),        # Official DC guidelines
+                ConditionVectorSearchTool(),   # Status effect impacts
+                # REMOVED: VenueVectorSearchTool - use passed current_venue_obj
+            ],
 
-    def _load_agent_config(self, agent_name: str) -> Agent:
-        """Load agent configuration from agents.yaml"""
+            # Consequence Agent: Determine effects
+            "consequence_agent": [
+                MonsterVectorSearchTool(),     # Damage calculations
+                SpellVectorSearchTool(),       # Spell effects
+                ConditionVectorSearchTool(),   # Status conditions
+                RuleVectorSearchTool(),        # Mechanical rules
+            ]
+        }
+
+    def _load_agent_config(self, agent_name: str, tools: list) -> Agent:
+        """
+        Load agent configuration from agents.yaml with specific tools.
+
+        Args:
+            agent_name: Name of the agent to load
+            tools: List of tools to assign to this agent
+        """
         agents_file = self.config_dir / "agents.yaml"
         with open(agents_file, 'r') as f:
             agents_config = yaml.safe_load(f)
@@ -123,7 +141,7 @@ class JudgeFlow(Flow[JudgeState]):
             llm=LLM(model=model),
             verbose=True,
             allow_delegation=False,
-            tools=self.tools
+            tools=tools  # Use agent-specific tools
         )
 
     def _load_task_config(self, task_name: str, agent: Agent, output_model: BaseModel) -> Task:
@@ -186,7 +204,7 @@ class JudgeFlow(Flow[JudgeState]):
     def check_feasibility_step(self):
         """Check if action is feasible under D&D 5E rules"""
         # Load agent and task from YAML
-        agent = self._load_agent_config("feasibility_agent")
+        agent = self._load_agent_config("feasibility_agent", self.tools["feasibility_agent"])
         task = self._load_task_config("check_feasibility", agent, FeasibilityOutput)
 
         # Execute task
@@ -220,7 +238,7 @@ class JudgeFlow(Flow[JudgeState]):
     def assign_difficulty_step(self):
         """Assign difficulty class for the action (TERMINAL)"""
         # Load agent and task from YAML
-        agent = self._load_agent_config("difficulty_agent")
+        agent = self._load_agent_config("difficulty_agent", self.tools["difficulty_agent"])
         task = self._load_task_config("assign_difficulty", agent, DifficultyOutput)
 
         # Execute task
@@ -243,7 +261,7 @@ class JudgeFlow(Flow[JudgeState]):
     def evaluate_consequences_step(self):
         """Evaluate consequences of action success/failure (TERMINAL)"""
         # Load agent and task from YAML
-        agent = self._load_agent_config("consequence_agent")
+        agent = self._load_agent_config("consequence_agent", self.tools["consequence_agent"])
         task = self._load_task_config("evaluate_consequence", agent, ConsequenceOutput)
 
         # Execute task with roll result

@@ -31,14 +31,24 @@ class NarrativeOutput(BaseModel):
 # Flow State Model
 class NarratorState(BaseModel):
     """State model for NarratorFlow"""
-    # Inputs
+    # Inputs (basic)
     campaign: str = ""
     player: str = ""
     prompt: str = ""
-    current_venue: str = ""
+    current_venue: str = ""  # Keep for backward compatibility
     action: Optional[Dict[str, Any]] = None
     effect: Optional[str] = None
     reactions: List[Dict[str, Any]] = Field(default_factory=list)
+
+    # NEW: Enriched context objects (passed from HostFlow)
+    current_venue_obj: Optional[Dict[str, Any]] = None  # Venue object as dict
+    current_stage_obj: Optional[Dict[str, Any]] = None  # Stage object as dict
+    active_npcs: List[Dict[str, Any]] = Field(default_factory=list)  # Character objects as dicts
+    player_character: Optional[Dict[str, Any]] = None  # Player character object as dict
+
+    # NEW: For NPC narrative generation
+    npc_reactions: List[Dict[str, Any]] = Field(default_factory=list)  # Batch NPC reactions
+    npc_narratives: str = ""  # Generated NPC narratives
 
     # Phase tracking
     workflow_phase: str = ""  # "validation" or "narrative"
@@ -67,41 +77,48 @@ class NarratorFlow(Flow[NarratorState]):
         self.config_dir = Path(__file__).parent / "config"
         self.tools = self._create_tools()
 
-    def _create_tools(self) -> list:
-        """Create all tools for Narrator agents"""
+    def _create_tools(self) -> dict:
+        """
+        Create tools for each Narrator agent based on Tool Assignment Matrix.
+
+        Returns a dict mapping agent names to their specific tool lists.
+        """
         from dnd_mas_host.tools.mongodb_vector_tools import (
-            NPCVectorSearchTool,
-            VenueVectorSearchTool,
-            StageVectorSearchTool,
-            UniversalVectorSearchTool,
+            # NPCVectorSearchTool,        # DISABLED - use passed state
+            # VenueVectorSearchTool,      # DISABLED - use passed state
+            # StageVectorSearchTool,      # DISABLED - use passed state
             MonsterVectorSearchTool,
-            SpellVectorSearchTool,
-            RuleVectorSearchTool,
-            EquipmentVectorSearchTool,
-            ClassVectorSearchTool,
-            ConditionVectorSearchTool,
-            MagicItemVectorSearchTool
+            SpellVectorSearchTool
         )
 
-        return [
-            # Campaign tools (primary for Narrator)
-            NPCVectorSearchTool(),
-            VenueVectorSearchTool(),
-            StageVectorSearchTool(),
-            UniversalVectorSearchTool(),
+        return {
+            # Prompt Validator: NO TOOLS - all context provided in state
+            "prompt_validator": [],
 
-            # 5E database tools (secondary, for validation/narrative enrichment)
-            MonsterVectorSearchTool(),
-            SpellVectorSearchTool(),
-            RuleVectorSearchTool(),
-            EquipmentVectorSearchTool(),
-            ClassVectorSearchTool(),
-            ConditionVectorSearchTool(),
-            MagicItemVectorSearchTool()
-        ]
+            # Action Extractor: NO TOOLS - all context provided in state
+            "action_extractor": [],
 
-    def _load_agent_config(self, agent_name: str) -> Agent:
-        """Load agent configuration from agents.yaml"""
+            # Narrative Generator: Keep D&D knowledge tools only
+            "narrative_generator": [
+                MonsterVectorSearchTool(),     # Combat/creature details (D&D SRD)
+                SpellVectorSearchTool(),       # Spell descriptions (D&D SRD)
+            ],
+
+            # NPC Narrative Generator: Keep D&D knowledge tools only
+            "npc_narrative_generator": [
+                MonsterVectorSearchTool(),     # Combat/creature details (D&D SRD)
+                SpellVectorSearchTool(),       # Spell descriptions (D&D SRD)
+            ]
+        }
+
+    def _load_agent_config(self, agent_name: str, tools: list) -> Agent:
+        """
+        Load agent configuration from agents.yaml with specific tools.
+
+        Args:
+            agent_name: Name of the agent to load
+            tools: List of tools to assign to this agent
+        """
         agents_file = self.config_dir / "agents.yaml"
         with open(agents_file, 'r') as f:
             agents_config = yaml.safe_load(f)
@@ -123,7 +140,7 @@ class NarratorFlow(Flow[NarratorState]):
             llm=LLM(model=model),
             verbose=True,
             allow_delegation=False,
-            tools=self.tools
+            tools=tools  # Use agent-specific tools
         )
 
     def _load_task_config(self, task_name: str, agent: Agent, output_model: BaseModel) -> Task:
@@ -201,16 +218,20 @@ class NarratorFlow(Flow[NarratorState]):
         """Validate player prompt for conflicts and ambiguities"""
         print(f"[DEBUG] NarratorFlow.validate_prompt_step() called with prompt='{self.state.prompt[:50]}...'")
 
-        # Load agent and task from YAML
-        agent = self._load_agent_config("prompt_validator")
+        # Load agent and task from YAML with specific tools
+        agent = self._load_agent_config("prompt_validator", self.tools["prompt_validator"])
         task = self._load_task_config("validate_prompt", agent, ValidationOutput)
 
-        # Execute task
+        # Execute task with enriched context objects
         result = self._execute_task_sync(task, {
             "campaign": self.state.campaign,
             "player": self.state.player,
             "prompt": self.state.prompt,
-            "current_venue": self.state.current_venue
+            "current_venue": self.state.current_venue,  # Keep for backward compat
+            "current_venue_obj": self.state.current_venue_obj or {},
+            "current_stage_obj": self.state.current_stage_obj or {},
+            "active_npcs": self.state.active_npcs or [],
+            "player_character": self.state.player_character or {}
         })
 
         # DEBUG: Log the result
@@ -245,16 +266,19 @@ class NarratorFlow(Flow[NarratorState]):
     @listen("do_extract_action")
     def extract_action_step(self):
         """Extract structured action from validated prompt"""
-        # Load agent and task from YAML
-        agent = self._load_agent_config("action_extractor")
+        # Load agent and task from YAML with specific tools
+        agent = self._load_agent_config("action_extractor", self.tools["action_extractor"])
         task = self._load_task_config("action_extract", agent, ActionExtractionOutput)
 
-        # Execute task
+        # Execute task with enriched context objects
         result = self._execute_task_sync(task, {
             "campaign": self.state.campaign,
             "player": self.state.player,
             "prompt": self.state.prompt,
-            "current_venue": self.state.current_venue
+            "current_venue": self.state.current_venue,  # Keep for backward compat
+            "current_venue_obj": self.state.current_venue_obj or {},
+            "active_npcs": self.state.active_npcs or [],
+            "player_character": self.state.player_character or {}
         })
 
         # Update state
@@ -265,15 +289,19 @@ class NarratorFlow(Flow[NarratorState]):
     @listen("do_generate_narrative")
     def generate_narrative_step(self):
         """Generate narrative from action results and NPC reactions"""
-        # Load agent and task from YAML
-        agent = self._load_agent_config("narrative_generator")
+        # Load agent and task from YAML with specific tools
+        agent = self._load_agent_config("narrative_generator", self.tools["narrative_generator"])
         task = self._load_task_config("narrative_task", agent, NarrativeOutput)
 
-        # Execute task
+        # Execute task with enriched context objects
         result = self._execute_task_sync(task, {
             "campaign": self.state.campaign,
             "player": self.state.player,
-            "current_venue": self.state.current_venue,
+            "current_venue": self.state.current_venue,  # Keep for backward compat
+            "current_venue_obj": self.state.current_venue_obj or {},
+            "current_stage_obj": self.state.current_stage_obj or {},
+            "active_npcs": self.state.active_npcs or [],
+            "player_character": self.state.player_character or {},
             "action": str(self.state.action or self.state.action_extracted),
             "effect": self.state.effect or "",
             "reactions": str(self.state.reactions)
@@ -282,5 +310,42 @@ class NarratorFlow(Flow[NarratorState]):
         # Update state
         self.state.narrative = result.narrative
         self.state.state_updates = result.state_updates
+
+        return self.state
+
+    def generate_npc_narratives_batch(self):
+        """
+        Generate narratives for all NPC reactions in a single batch.
+        This method is called directly from HostFlow (not part of the flow routing).
+        """
+        if not self.state.npc_reactions:
+            self.state.npc_narratives = ""
+            return self.state
+
+        # Load agent and task from YAML with specific tools
+        agent = self._load_agent_config("npc_narrative_generator", self.tools["npc_narrative_generator"])
+        task = self._load_task_config("generate_npc_narratives", agent, str)
+
+        # Build enriched NPC context from npc_reactions
+        npc_context = []
+        for reaction in self.state.npc_reactions:
+            npc_context.append({
+                "name": reaction.get("npc_name", ""),
+                "personality": reaction.get("personality", ""),
+                "description": reaction.get("description", ""),
+                "action": reaction.get("action", {}),
+                "roll_result": reaction.get("roll", 0),
+                "consequence": reaction.get("consequence", "")
+            })
+
+        # Execute task
+        result = self._execute_task_sync(task, {
+            "campaign": self.state.campaign,
+            "venue": self.state.current_venue_obj if self.state.current_venue_obj else {},
+            "npc_reactions": npc_context
+        })
+
+        # Update state with generated narratives
+        self.state.npc_narratives = result if isinstance(result, str) else str(result)
 
         return self.state

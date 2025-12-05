@@ -6,8 +6,9 @@ Interface Agent for conversation history and internal state management.
 """
 
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Any
 from datetime import datetime
+from .character import Character
 
 
 class ConversationEntry(BaseModel):
@@ -55,3 +56,39 @@ class InterfaceState(BaseModel):
     flow_running: bool = Field(default=False, description="Whether HostFlow is currently executing")
     awaiting_difficulty_decision: bool = Field(default=False, description="Whether GUI is waiting for user difficulty decision")
     current_difficulty: Optional[int] = Field(default=None, description="Current difficulty DC if awaiting decision")
+
+
+class Venue(BaseModel):
+    """
+    Represents a game venue/location.
+
+    This structured model replaces string-based venue references with
+    rich context including environment, NPCs, connections, and available actions.
+    """
+    name: str = Field(description="Venue identifier/name")
+    env_desc: str = Field(default="", description="Environmental description (lighting, terrain, hazards)")
+    story_desc: str = Field(default="", description="Story-relevant description")
+    connect_venues: List[str] = Field(default_factory=list, description="Connected venue names")
+    npcs_present: List[str] = Field(default_factory=list, description="NPC names in this venue")
+    supported_actions: List[str] = Field(default_factory=list, description="Available action types")
+
+    class Config:
+        extra = "allow"  # Allow additional fields from MongoDB
+
+
+class Stage(BaseModel):
+    """
+    Represents a story stage.
+
+    This structured model provides context about the current story progression,
+    including available venues and narrative context.
+    """
+    name: str = Field(description="Stage identifier/name")
+    env_desc: str = Field(default="", description="Stage environment description")
+    story_desc: str = Field(default="", description="Stage story description")
+    venues: List[str] = Field(default_factory=list, description="Venue names in this stage")
+    start_venue: str = Field(default="", description="Starting venue name")
+    start_narrative: str = Field(default="", description="Opening narrative")
+
+    class Config:
+        extra = "allow"  # Allow additional fields from MongoDB
