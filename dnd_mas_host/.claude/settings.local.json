@@ -16,7 +16,8 @@
       "Bash(python test_shared_buffer.py:*)",
       "Bash(python -c:*)",
       "Bash(rm:*)",
-      "Bash(python test_gui_layout.py:*)"
+      "Bash(python test_gui_layout.py:*)",
+      "Bash(python test_narrator_fix.py:*)"
     ],
     "deny": [],
     "ask": []

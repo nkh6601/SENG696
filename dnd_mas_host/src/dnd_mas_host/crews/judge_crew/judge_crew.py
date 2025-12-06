@@ -71,6 +71,8 @@ class JudgeFlow(Flow[JudgeState]):
         super().__init__()
         self.config_dir = Path(__file__).parent / "config"
         self.tools = self._create_tools()
+        self.host_manager = None
+        self.bb = None
 
     def _create_tools(self) -> dict:
         """

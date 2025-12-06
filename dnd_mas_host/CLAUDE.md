@@ -21,8 +21,58 @@ The system replaces the traditional Game Master role (narrative/storytelling, ru
 
 ## Architecture
 
-### Flow-Based Orchestration
-The system uses CrewAI's Flow pattern (not traditional Crew pattern) defined in [src/dnd_mas_host/main.py](src/dnd_mas_host/main.py):
+### V2 Architecture: Message-Passing with Blackboard Pattern
+
+The system now uses a FIPA-inspired message-passing architecture with centralized Blackboard pattern:
+
+**Entry Point**: `python -m dnd_mas_host.interface` (launches InterfaceAgentV2)
+
+**Core Components**:
+
+1. **HostManager** ([manager/host_manager.py](src/dnd_mas_host/manager/host_manager.py)) - System Backbone
+   - Owns unified message queue
+   - Routes ALL messages to appropriate agents
+   - Kicks off agent execution (NarratorFlow, JudgeFlow)
+   - Manages NPC crews (REUSE existing, CREATE new, DELETE inactive)
+   - Owns BlackboardManager instance
+
+2. **BlackboardManager** ([state/blackboard_manager.py](src/dnd_mas_host/state/blackboard_manager.py))
+   - Centralized HostState access
+   - Read/write with configurable logging (`ENABLE_BLACKBOARD_LOGGING` in config.py)
+   - Reset turn state between prompts
+   - NPC crew lifecycle management
+
+3. **HostState** ([state/host_state.py](src/dnd_mas_host/state/host_state.py)) - Nested Structure
+   - `workflow`: WorkflowState (step tracking, error handling)
+   - `game_context`: GameContext (campaign, characters, venues - immutable)
+   - `current_turn`: TurnState (prompt, action, consequences, reactions)
+   - `output`: OutputState (narratives, previous context)
+
+4. **Message Types** ([interface/message_types.py](src/dnd_mas_host/interface/message_types.py))
+   - Agent-to-agent: VALIDATE_PROMPT, CHECK_FEASIBILITY, EVALUATE_CONSEQUENCE, etc.
+   - Interface messages: REQUEST_DIFFICULTY_CHECK, DISPLAY_NARRATIVE, VALIDATION_ERROR
+   - Error handling: FLOW_ERROR
+
+**Message Flow**:
+```
+User Prompt → Interface → VALIDATE_PROMPT → Narrator → CHECK_FEASIBILITY → Judge
+                ↓                                              ↓
+        VALIDATION_ERROR (if invalid)                REQUEST_DIFFICULTY_CHECK
+                                                              ↓
+                                                    User rolls d20
+                                                              ↓
+                                              EVALUATE_CONSEQUENCE → Judge
+                                                              ↓
+                                              EVALUATE_REACTIONS → NPC Processing
+                                                              ↓
+                                              GENERATE_NARRATIVE → Narrator
+                                                              ↓
+                                              DISPLAY_NARRATIVE → Interface
+```
+
+### Legacy Architecture: Flow-Based Orchestration
+
+The original system uses CrewAI's Flow pattern defined in [src/dnd_mas_host/main.py](src/dnd_mas_host/main.py):
 
 - `HostState` (Pydantic model): Centralized state management tracking workflow progress, user prompts, action difficulty, NPC reactions, and narrative output
 - `HostFlow`: Flow orchestrator with `@start()`, `@listen()`, and `@router()` decorators managing agent coordination
@@ -184,7 +234,31 @@ The main interaction flow:
 
 - This is a **Flow** project (not a traditional Crew project) - check `pyproject.toml`: `type = "flow"`
 - Agents are configured via **hybrid approach**: Tools in Python (`_create_tools()`), other config in YAML
-- The project emphasizes **state-based** workflow control over direct message passing
-- **Flow-based architecture** uses explicit routing with `@router()` decorators (no hierarchical managers)
-- All game state MUST be tracked in HostState and passed via Flow inputs (agents have no internal memory)
+- **V2 Architecture**: Message-passing with Blackboard pattern (entry point: `python -m dnd_mas_host.interface`)
+- **Legacy Architecture**: Flow-based with HostFlow orchestration (entry point: `python -m dnd_mas_host.interface.interface_agent`)
+- All game state MUST be tracked in HostState/BlackboardManager (agents have no internal memory)
 - If any unclear or question, please ask before proceed with the implementation or planning
+
+## V2 Architecture File Structure
+
+**New Core Files**:
+| File | Purpose |
+|------|---------|
+| `src/dnd_mas_host/state/host_state.py` | HostState with nested structure (WorkflowState, GameContext, TurnState, OutputState), Action/Consequence classes |
+| `src/dnd_mas_host/state/blackboard_manager.py` | Centralized state access with configurable logging |
+| `src/dnd_mas_host/manager/host_manager.py` | System backbone - owns queue, routes messages, kicks off agents, manages NPC crews |
+| `src/dnd_mas_host/interface/message_types.py` | Message protocol for agent-to-agent communication |
+| `src/dnd_mas_host/interface/models.py` | Campaign class with `load_from_db()` for pre-loading all game data |
+| `src/dnd_mas_host/interface/consequence_applicator.py` | Type-based consequence handlers (DAMAGE, HEALING, MOVEMENT, etc.) |
+| `src/dnd_mas_host/interface/interface_agent_v2.py` | V2 GUI using HostManager architecture |
+| `src/dnd_mas_host/interface/__main__.py` | Entry point for `python -m dnd_mas_host.interface` |
+
+**Configuration**:
+- `ENABLE_BLACKBOARD_LOGGING` in `config.py` - Toggle state change logging
+- `MAX_RETRY_LIMIT` in `config.py` - Agent retry attempts (default: 1)
+
+**Key Design Patterns**:
+- **Blackboard Pattern**: Centralized HostState accessible to all agents via BlackboardManager
+- **Message-Passing**: Agents send domain-specific messages via unified queue
+- **NPC Crew Lifecycle**: REUSE existing crews, CREATE new for new characters, DELETE for inactive
+- **DEX Ordering**: NPCs processed in dexterity order (high to low)

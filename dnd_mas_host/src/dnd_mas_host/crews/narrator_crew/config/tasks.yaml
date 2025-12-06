@@ -5,13 +5,7 @@ validate_prompt:
 
     Review the following information to validate the player's prompt:
 
-    Campaign: {campaign}
-    Player: {player}
-    Player Character: {player_character}
-    Current Venue: {current_venue_obj}
-    Current Stage: {current_stage_obj}
-    Active NPCs: {active_npcs}
-    Player's Prompt: "{prompt}"
+    {state_text}
 
     INSTRUCTIONS:
     - DO NOT use vector search tools - all context is provided above
@@ -44,12 +38,7 @@ action_extract:
 
     Extract structured action data from the following validated prompt:
 
-    Campaign: {campaign}
-    Player: {player}
-    Player Character: {player_character}
-    Current Venue: {current_venue_obj}
-    Active NPCs: {active_npcs}
-    Player's Prompt: "{prompt}"
+    {state_text}
 
     INSTRUCTIONS:
     - DO NOT use vector search tools - all context is provided above
@@ -86,15 +75,10 @@ narrative_task:
 
     Generate narrative based on the following action results:
 
-    Campaign: {campaign}
-    Player: {player}
-    Player Character: {player_character}
-    Current Venue: {current_venue_obj}
-    Current Stage: {current_stage_obj}
-    Active NPCs: {active_npcs}
+    {state_text}
+
     Action Taken: {action}
     Action Effect: {effect}
-    NPC Reactions: {reactions}
 
     INSTRUCTIONS:
     - Use MonsterVectorSearchTool ONLY for combat descriptions (enemy abilities)
@@ -130,8 +114,8 @@ generate_npc_narratives:
   description: >
     Generate narratives for all NPC reactions in a single batch.
 
-    Campaign: {campaign}
-    Current Venue: {venue}
+    {state_text}
+
     NPC Reactions: {npc_reactions}
 
     NPC_REACTIONS FORMAT:

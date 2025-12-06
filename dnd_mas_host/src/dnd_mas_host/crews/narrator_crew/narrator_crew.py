@@ -6,6 +6,9 @@ from pydantic import BaseModel, Field
 from crewai import Agent, Task, LLM
 from crewai.flow.flow import Flow, listen, start, router
 
+from dnd_mas_host.interface.message_types import Message, MessageType, create_message
+from dnd_mas_host.state.host_state import Action, ActionType, WorkflowStep
+
 
 # Output models for structured task outputs
 class ValidationOutput(BaseModel):
@@ -30,26 +33,7 @@ class NarrativeOutput(BaseModel):
 
 # Flow State Model
 class NarratorState(BaseModel):
-    """State model for NarratorFlow"""
-    # Inputs (basic)
-    campaign: str = ""
-    player: str = ""
-    prompt: str = ""
-    current_venue: str = ""  # Keep for backward compatibility
-    action: Optional[Dict[str, Any]] = None
-    effect: Optional[str] = None
-    reactions: List[Dict[str, Any]] = Field(default_factory=list)
-
-    # NEW: Enriched context objects (passed from HostFlow)
-    current_venue_obj: Optional[Dict[str, Any]] = None  # Venue object as dict
-    current_stage_obj: Optional[Dict[str, Any]] = None  # Stage object as dict
-    active_npcs: List[Dict[str, Any]] = Field(default_factory=list)  # Character objects as dicts
-    player_character: Optional[Dict[str, Any]] = None  # Player character object as dict
-
-    # NEW: For NPC narrative generation
-    npc_reactions: List[Dict[str, Any]] = Field(default_factory=list)  # Batch NPC reactions
-    npc_narratives: str = ""  # Generated NPC narratives
-
+    msg: Optional[Message] = None
     # Phase tracking
     workflow_phase: str = ""  # "validation" or "narrative"
 
@@ -76,6 +60,8 @@ class NarratorFlow(Flow[NarratorState]):
         super().__init__()
         self.config_dir = Path(__file__).parent / "config"
         self.tools = self._create_tools()
+        self.host_manager = None
+        self.bb = None
 
     def _create_tools(self) -> dict:
         """
@@ -188,19 +174,15 @@ class NarratorFlow(Flow[NarratorState]):
 
     @start()
     def determine_phase(self):
-        """Determine workflow phase based on inputs"""
-        print(f"[DEBUG] NarratorFlow.determine_phase() called")
-        print(f"[DEBUG]   - prompt: '{self.state.prompt[:50] if self.state.prompt else None}...'")
-        print(f"[DEBUG]   - action: {self.state.action}")
-        print(f"[DEBUG]   - effect: {self.state.effect}")
-        print(f"[DEBUG]   - reactions: {self.state.reactions}")
+        if not self.state.msg:
+            raise ValueError("No message provided to NarratorFlow")
 
         # Phase 1: Validation - prompt provided, no action
-        if self.state.prompt and not self.state.action:
+        if self.state.msg.type == MessageType.VALIDATE_PROMPT:
             self.state.workflow_phase = "validation"
             print(f"[DEBUG] Workflow phase set to: validation")
         # Phase 2: Narrative - action/effect/reactions provided
-        elif self.state.action is not None:
+        elif self.state.msg.type == MessageType.GENERATE_NARRATIVE:
             self.state.workflow_phase = "narrative"
             print(f"[DEBUG] Workflow phase set to: narrative")
         else:
@@ -223,22 +205,25 @@ class NarratorFlow(Flow[NarratorState]):
     @listen("do_validate_prompt")
     def validate_prompt_step(self):
         """Validate player prompt for conflicts and ambiguities"""
-        print(f"[DEBUG] NarratorFlow.validate_prompt_step() called with prompt='{self.state.prompt[:50]}...'")
+        print(f"[DEBUG] NarratorFlow.validate_prompt_step() called with prompt='...'")
+        
+        bb = self.bb
+        print(bb)
+        state_text = bb.praseState()
 
+        print(state_text)
         # Load agent and task from YAML with specific tools
         agent = self._load_agent_config("prompt_validator", self.tools["prompt_validator"])
+        
+        print(state_text)
         task = self._load_task_config("validate_prompt", agent, ValidationOutput)
-
+        
+        
+        
+        print(state_text)
         # Execute task with enriched context objects
         result = self._execute_task_sync(task, {
-            "campaign": self.state.campaign,
-            "player": self.state.player,
-            "prompt": self.state.prompt,
-            "current_venue": self.state.current_venue,  # Keep for backward compat
-            "current_venue_obj": self.state.current_venue_obj or {},
-            "current_stage_obj": self.state.current_stage_obj or {},
-            "active_npcs": self.state.active_npcs or [],
-            "player_character": self.state.player_character or {}
+            "state_text": str(state_text)
         })
 
         # DEBUG: Log the result
@@ -268,6 +253,18 @@ class NarratorFlow(Flow[NarratorState]):
             print("[DEBUG] Validation failed - ending flow (no route)")
             # State already contains validation_message from validate_prompt_step
             # Return None to terminate the flow without triggering any more listeners
+            
+            # Validation failed - send error to Interface
+            self.bb.write({
+                "current_turn.prompt_valid": False,
+                "current_turn.validation_message": self.state.validation_message
+            })
+            self.host_manager.send_message(create_message(
+                to="Interface",
+                msg_type=MessageType.VALIDATION_ERROR,
+                data={"message": self.state.validation_message},
+                from_agent="Narrator"
+            ))
             return None
 
     @listen("do_extract_action")
@@ -277,20 +274,38 @@ class NarratorFlow(Flow[NarratorState]):
         agent = self._load_agent_config("action_extractor", self.tools["action_extractor"])
         task = self._load_task_config("action_extract", agent, ActionExtractionOutput)
 
+        bb = self.bb
+        
+        mc_name = bb.read_single("game_context.main_character_name")
+        state_text = bb.praseState()
+
         # Execute task with enriched context objects
         result = self._execute_task_sync(task, {
-            "campaign": self.state.campaign,
-            "player": self.state.player,
-            "prompt": self.state.prompt,
-            "current_venue": self.state.current_venue,  # Keep for backward compat
-            "current_venue_obj": self.state.current_venue_obj or {},
-            "active_npcs": self.state.active_npcs or [],
-            "player_character": self.state.player_character or {}
+            "state_text": state_text
         })
 
         # Update state
         self.state.action_extracted = result.dict()
 
+        
+            # Validation passed - extract action and send to Judge
+        action_data = self.state.action_extracted
+        bb.write({
+            "current_turn.prompt_valid": True,
+            "current_turn.action_extracted": Action(
+                action_type=ActionType(action_data.get("action_type", "other")),
+                actor_name=mc_name,
+                target=action_data.get("target"),
+                method=action_data.get("method", ""),
+                intent=action_data.get("intent", "")
+            )
+        })
+        self.host_manager.send_message(create_message(
+            to="Judge",
+            msg_type=MessageType.CHECK_FEASIBILITY,
+            from_agent="Narrator"
+        ))
+        
         return self.state
 
     @listen("do_generate_narrative")
@@ -300,26 +315,32 @@ class NarratorFlow(Flow[NarratorState]):
         agent = self._load_agent_config("narrative_generator", self.tools["narrative_generator"])
         task = self._load_task_config("narrative_task", agent, NarrativeOutput)
 
+        bb = self.bb
+        
+        state_text = bb.praseState()
+        mc_name = bb.read_single("game_context.main_character_name")
+        current_turn = bb.read_single("current_turn")
+        
+        
         # Execute task with enriched context objects
         result = self._execute_task_sync(task, {
-            "campaign": self.state.campaign,
-            "player": self.state.player,
-            "current_venue": self.state.current_venue,  # Keep for backward compat
-            "current_venue_obj": self.state.current_venue_obj or {},
-            "current_stage_obj": self.state.current_stage_obj or {},
-            "active_npcs": self.state.active_npcs or [],
-            "player_character": self.state.player_character or {},
-            "action": str(self.state.action or self.state.action_extracted),
-            "effect": self.state.effect or "",
-            "reactions": str(self.state.reactions)
+            "state_text": state_text,
+            "action": str(current_turn.action_extracted),
+            "effect": str(current_turn.mc_consequence),
         })
 
         # Update state
         self.state.narrative = result.narrative
         self.state.state_updates = result.state_updates
 
+        bb.write({
+            "output.final_output": {mc_name: result.narrative},
+            "workflow.current_step": WorkflowStep.STEP_9_DISPLAY_OUTPUT,
+            "workflow.flow_complete": True            
+        })
         return self.state
-
+    
+    @listen("generate_narrative_step")
     def generate_npc_narratives_batch(self):
         """
         Generate narratives for all NPC reactions in a single batch.
@@ -333,26 +354,45 @@ class NarratorFlow(Flow[NarratorState]):
         agent = self._load_agent_config("npc_narrative_generator", self.tools["npc_narrative_generator"])
         task = self._load_task_config("generate_npc_narratives", agent, str)
 
+        bb = self.bb
+        
+        state_text = bb.praseState()
+        
+        current_turn = bb.read_single("current_turn")
+
         # Build enriched NPC context from npc_reactions
         npc_context = []
-        for reaction in self.state.npc_reactions:
+        for char, reaction in current_turn.reactions_consequence_list:
             npc_context.append({
-                "name": reaction.get("npc_name", ""),
-                "personality": reaction.get("personality", ""),
-                "description": reaction.get("description", ""),
-                "action": reaction.get("action", {}),
-                "roll_result": reaction.get("roll", 0),
-                "consequence": reaction.get("consequence", "")
+                "name": char,
+                "effect": str(reaction)
             })
 
         # Execute task
         result = self._execute_task_sync(task, {
-            "campaign": self.state.campaign,
-            "venue": self.state.current_venue_obj if self.state.current_venue_obj else {},
+            "state_text": state_text,
             "npc_reactions": npc_context
         })
 
         # Update state with generated narratives
         self.state.npc_narratives = result if isinstance(result, str) else str(result)
+        
+        final_output = bb.read_single("output.final_output")        
+        
+        if self.narrator_flow.state.npc_narratives:
+                final_output["NPCs"] = self.narrator_flow.state.npc_narratives
+        
+        bb.write({
+            "output.final_output": final_output,
+            "workflow.current_step": WorkflowStep.STEP_9_DISPLAY_OUTPUT,
+            "workflow.flow_complete": True            
+        })
 
+        self.host_manager.send_message(create_message(
+            to="Interface",
+            msg_type=MessageType.DISPLAY_NARRATIVE,
+            data={"narratives": final_output},
+            from_agent="Narrator"
+        ))
+        
         return self.state

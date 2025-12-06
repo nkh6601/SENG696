@@ -34,3 +34,8 @@ MAX_RPM = None
 # Maximum retry attempts when an error occurs (default: 2)
 # How many times to retry a failed task before giving up
 MAX_RETRY_LIMIT = 1
+
+# Blackboard Logging
+# When True, all blackboard read/write operations are logged to console
+# Useful for debugging state changes in the message-passing architecture
+ENABLE_BLACKBOARD_LOGGING = True
