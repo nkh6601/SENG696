@@ -74,10 +74,6 @@ Go to .\SENG696\dnd_mas_host, and modify the openapi field to allow API call. Ot
 
 OPENAI_API_KEY=xxxxxx
 
-## License
-
-[Specify your license here]
-
 ---
 
 ## Credits
@@ -85,6 +81,10 @@ OPENAI_API_KEY=xxxxxx
 - **CrewAI Framework**: [crewai.com](https://crewai.com)
 - **D&D 5E SRD**: [5e-bits/5e-database](https://github.com/5e-bits/5e-database)
 - **Campaign Design**: Custom "Humantown: Rescue from the Town of Slimes"
+
+## Remark
+
+- This project uses Claude Code in the implementation, especially for the overall flow.
 
 ---
 
