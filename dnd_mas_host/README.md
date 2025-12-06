@@ -1,56 +1,91 @@
-# {{crew_name}} Crew
 
-Welcome to the {{crew_name}} Crew project, powered by [crewAI](https://crewai.com). This template is designed to help you set up a multi-agent AI system with ease, leveraging the powerful and flexible framework provided by crewAI. Our goal is to enable your agents to collaborate effectively on complex tasks, maximizing their collective intelligence and capabilities.
+## Prerequisites
+
+### Required Software
+
+1. **Python**: Version ≥3.10, <3.14
+   - Download from [python.org](https://www.python.org/downloads/)
+
+2. **MongoDB**: Version 6.0 or higher
+   - Download from [mongodb.com](https://www.mongodb.com/try/download/community)
+   - **Important**: MongoDB must be running before starting the application
+
+3. **Git** (optional, for cloning):
+   - Download from [git-scm.com](https://git-scm.com/downloads)
+
+### API Keys
+
+- **OpenAI API Key**: Required for LLM inference
+  - Get your key from [platform.openai.com](https://platform.openai.com/api-keys)
+
+---
 
 ## Installation
 
-Ensure you have Python >=3.10 <3.14 installed on your system. This project uses [UV](https://docs.astral.sh/uv/) for dependency management and package handling, offering a seamless setup and execution experience.
+### Step 1: Clone or Download the Repository
 
-First, if you haven't already, install uv:
+```bash
+git clone <repository-url>
+cd dnd_mas_host
+```
+
+Or download and extract the ZIP file.
+
+### Step 2: Install UV (Python Package Manager)
 
 ```bash
 pip install uv
 ```
 
-Next, navigate to your project directory and install the dependencies:
+### Step 3: Install Dependencies
 
-(Optional) Lock the dependencies and install them by using the CLI command:
+Navigate to the project directory and install all dependencies:
+
 ```bash
+cd .\SENG696\dnd_mas_host
 crewai install
 ```
 
-### Customizing
-
-**Add your `OPENAI_API_KEY` into the `.env` file**
-
-- Modify `src/dnd_mas_host/config/agents.yaml` to define your agents
-- Modify `src/dnd_mas_host/config/tasks.yaml` to define your tasks
-- Modify `src/dnd_mas_host/crew.py` to add your own logic, tools and specific args
-- Modify `src/dnd_mas_host/main.py` to add custom inputs for your agents and tasks
-
-## Running the Project
-
-To kickstart your flow and begin execution, run this from the root folder of your project:
+Or manually with UV:
 
 ```bash
-crewai run
+uv pip install -r requirements.txt
 ```
 
-This command initializes the dnd_mas_host Flow as defined in your configuration.
+### Step 4: Install Additional Dependencies
 
-This example, unmodified, will run the create a `report.md` file with the output of a research on LLMs in the root folder.
+Install PySimpleGUI and MongoDB driver:
 
-## Understanding Your Crew
+```bash
+pip install PySimpleGUI pymongo sentence-transformers
+```
+### Step 5: Restore the docker container
 
-The dnd_mas_host Crew is composed of multiple AI agents, each with unique roles, goals, and tools. These agents collaborate on a series of tasks, defined in `config/tasks.yaml`, leveraging their collective skills to achieve complex objectives. The `config/agents.yaml` file outlines the capabilities and configurations of each agent in your crew.
+Go to .\SENG696\mongodb3, and unzip the mongodb-complete-20251205_232602.rar
 
-## Support
+Running the docker desktop, and execute the restore.ps1 script. The script should be teh same folder with the images.
 
-For support, questions, or feedback regarding the {{crew_name}} Crew or crewAI.
+```powershell
+.\restore.ps1
+```
 
-- Visit our [documentation](https://docs.crewai.com)
-- Reach out to us through our [GitHub repository](https://github.com/joaomdmoura/crewai)
-- [Join our Discord](https://discord.com/invite/X4JWnZnxPb)
-- [Chat with our docs](https://chatg.pt/DWjSBZn)
 
-Let's create wonders together with the power and simplicity of crewAI.
+## License
+
+[Specify your license here]
+
+---
+
+## Credits
+
+- **CrewAI Framework**: [crewai.com](https://crewai.com)
+- **D&D 5E SRD**: [5e-bits/5e-database](https://github.com/5e-bits/5e-database)
+- **Campaign Design**: Custom "Humantown: Rescue from the Town of Slimes"
+
+---
+
+**Ready to adventure? Run the application and start your journey!**
+
+```bash
+python -m dnd_mas_host.interface
+```

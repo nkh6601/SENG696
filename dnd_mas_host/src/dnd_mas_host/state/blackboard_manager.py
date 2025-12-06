@@ -417,18 +417,23 @@ class BlackboardManager:
         stage_data = self.read_single("game_context.all_stages").get(stage_name, {})
         mc_data  = self.get_character_data(mc_name) or {}
 
+        
         # Get active NPCs in venue
         active_npcs = []
         npc_names = venue_data.get("NPCs", [])
         for npc_name in npc_names:
             npc_data = self.get_npc_data(npc_name)
             if npc_data:
-                active_npcs.append(npc_data)
-
+                active_npcs.append(f"NPC name:{str(npc_data.get("name", []))}, desc{str(npc_data.get("desc", []))}, intention{str(npc_data.get("intention", []))}" )
+                
+                
+        print(venue_data)
         
         result = f"Player prompt: {prompt_text} \
-                    Main character: {mc_name}, HP: {mc_data["hp"]} , max HP: {mc_data["max_hp"]}\
-                    stage: {str(stage_data["name"])}, venue: {str(venue_data.get("name", []))} \
+                    Main character: {mc_name}, HP: {mc_data["hp"]} , max HP: {mc_data["max_hp"]}, class: {str(mc_data["character_class"])}, level: {str(mc_data["level"])}\
+                    stage: {str(stage_data["name"])}, description {str(stage_data.get("envDesc", []))}; {str(stage_data.get("storyDesc", []))}\
+                    venue: {str(venue_data.get("name", []))}, description {str(venue_data.get("envDesc", []))}; {str(venue_data.get("storyDesc", []))}, potential valid action: {str(venue_data.get("actions", []))}, potential valid action: {",".join(venue_data.get("connectVenues", []))} \
                     NPCs nearby: {','.join(active_npcs)}"
-                    
+                   
+        print(result) 
         return result

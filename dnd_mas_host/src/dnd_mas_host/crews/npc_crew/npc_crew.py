@@ -38,7 +38,7 @@ class NpcCrew():
     # If you would like to add tools to your agents, you can learn more about it here:
     # https://docs.crewai.com/concepts/agents#agent-tools
     @agent
-    def npc(self) -> Agent:
+    def NPC(self) -> Agent:
         # Import execution control settings
         from dnd_mas_host.config import MAX_ITER, MAX_EXECUTION_TIME, MAX_RPM, MAX_RETRY_LIMIT
 

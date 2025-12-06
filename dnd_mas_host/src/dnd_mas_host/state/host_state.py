@@ -77,6 +77,7 @@ class Consequence(BaseModel):
     consequence_type: ConsequenceType = Field(description="Type of consequence")
     target_name: str = Field(description="Name of target affected by consequence")
     description: str = Field(description="Human-readable description of consequence")
+    time_used: str = Field(description="Human-readable in-game time used for this action")
 
     # Type-specific fields (conditionally required)
     # DAMAGE

@@ -1,29 +1,29 @@
 check_feasibility:
   description: >
-    ONLY validate whether the action is legal and feasible according to D&D 5E 2014 rules.
-    DO NOT evaluate difficulty or consequences - only check if the action is possible.
+    Validate whether the following action is legal and feasible according to D&D 5E 2014 rules.
 
-    Validate whether the following action is legal and feasible:
-
-    Campaign: {campaign}
-    Player: {player}
     Action Details: {action}
 
-    Please only use tools when crucial information is missing to complete the task, and limit their usage to a maximum of three.   
+    Context: {state_text}
+    
+    
+
+    Instructions: 
+    - Use as few vector search tools as possible, with a maximum of two times.
+
 
     Consider the following aspects:
-    - Action Economy: Does the player have the action/bonus action/reaction available?
+    - Environmental Constraints: Is the action possible in the current environment?    
+    - Physical Limitations: Can the action be performed given character's position/condition?
     - Spell Components: For spells, are verbal, somatic, and material components available?
     - Class Features & Feats: Does the player have the required class features or feats?
-    - Environmental Constraints: Is the action possible in the current environment?
-    - Physical Limitations: Can the action be performed given character's position/condition?
+    - Use the action in venue as a referenced. The player's action may valid even if it is not similar to those actions provided in venue.
     - Resource Availability: Does the player have required resources (spell slots, items, etc.)?
 
     If the action is invalid, provide a clear, user-friendly explanation of why it cannot be performed.
     Make sure to search the D&D 5E 2014 rule book for relevant rules.
 
-    This is ONLY a feasibility check - if it's something related to difficulty or consequences,
-    state that it is NOT a feasibility matter.
+    This is ONLY a feasibility check - if it's something related to difficulty or consequences, you do not to consider it.
   expected_output: >
     A JSON format feasibility check result, which includes:
     - is_valid: Boolean indicating if the action is valid
@@ -33,29 +33,21 @@ check_feasibility:
 
 assign_difficulty:
   description: >
-    ONLY assign an appropriate Difficulty Class (DC) for the action based on D&D 5E 2014 rules and context.
-    DO NOT validate feasibility or evaluate consequences - only determine how difficult the action is.
-
-    Assign an appropriate Difficulty Class (DC) for the following action:
-
-    Campaign: {campaign}
-    Player: {player}
-    Player Character: {player_character}
-    Current Venue: {current_venue_obj}
-    Active NPCs: {active_npcs}
+    Assign an appropriate Difficulty Class (DC) for the following action based on D&D 5E 2014 rules and context.
+    
     Action Details: {action}
 
-    VENUE MODIFIERS (from current_venue_obj):
-    - Environment: Extract from env_desc field (lighting, terrain, weather, hazards)
-    - Conditions: darkness, difficult terrain, obstacles, etc.
+    Context:     {state_text}
 
-    INSTRUCTIONS:
+
+    INSTRUCTIONS:    
+    - Use as few vector search tools as possible, with a maximum of two times (Monster + Rule)
     - Use MonsterVectorSearchTool to get enemy AC/saves if attacking NPC
     - Use RuleVectorSearchTool for DC guidelines (PHB Chapter 8)
     - Use ConditionVectorSearchTool if player has status effects
+    - Use the action in venue as a referenced only if player's action is similar, and adjust the difficulty based on that value.
     - DO NOT search VenueVectorSearchTool - modifiers provided in current_venue_obj
     - Check player_character conditions for disadvantage/advantage
-    - Maximum tool usage: 2
 
     The difficulty level is indicated by a number between -1 to 21:
     - -1: Automatically succeeds (no check needed)
@@ -66,17 +58,15 @@ assign_difficulty:
     - 21: Impossible (automatically fails)
 
     Consider the following factors when assigning difficulty:
-    - Character abilities and proficiencies (from player_character)
+    - Character abilities and proficiencies
     - Environmental conditions from current_venue_obj
-    - Enemy or obstacle characteristics (search Monster tool if needed)
+    - Enemy or obstacle characteristics
     - Situational modifiers (advantage, disadvantage)
     - Time pressure or stress factors
     - Equipment and tools available
 
     Provide clear reasoning for the assigned difficulty level.
 
-    This is ONLY a difficulty assignment - if it's something related to feasibility or consequences,
-    state that it is NOT a difficulty matter.
   expected_output: >
     A JSON format difficulty assignment, which includes:
     - difficulty: The DC value from -1 to 21
@@ -86,27 +76,22 @@ assign_difficulty:
 
 evaluate_consequence:
   description: >
-    ONLY evaluate and describe the mechanical consequences of the action based on whether it succeeded or failed.
-    DO NOT validate feasibility or assign difficulty - only determine what happens as a result.
+    Evaluate and describe the mechanical consequences of the following action based on whether it succeeded or failed.
 
-    Evaluate the consequences of the following action:
-
-    Campaign: {campaign}
-    Player: {player}
-    Player Character: {player_character}
-    Current Venue: {current_venue_obj}
-    Active NPCs: {active_npcs}
     Action Details: {action}
     Roll Result: {roll}
 
+    {state_text}
+    
+
     INSTRUCTIONS:
+    - Use as few vector search tools as possible, with a maximum of two times.
     - Use MonsterVectorSearchTool for damage calculations
     - Use SpellVectorSearchTool for spell effects
     - Use ConditionVectorSearchTool for status conditions
     - Use RuleVectorSearchTool for edge cases
     - DO NOT search for venue/NPC info - provided in context
     - Update HP, conditions, resources based on D&D 5E rules
-    - Maximum tool usage: 2
 
     Based on the success/failure outcome, determine:
     - HP changes (damage dealt/taken, healing)
@@ -123,11 +108,33 @@ evaluate_consequence:
 
     Focus on mechanical effects - the Narrator will handle narrative descriptions.
 
-    This is ONLY a consequence evaluation - if it's something related to feasibility or difficulty,
-    state that it is NOT a consequence matter.
   expected_output: >
     A JSON format consequence evaluation, which includes:
+    - effect_type: Type of effect, including "damage", "healing", "movement", "status_effect", "item_change", "venue_change", "stage_change", "npc_state_change", and "environmental".
     - effect: Detailed description of mechanical impacts (HP, conditions, position, resources)
     - reasoning: Explanation of why these consequences occurred based on D&D 5E rules
     - time_used: Estimated in-game time the action took (e.g., "6 seconds", "1 minute", "1 hour")
+
+    # Type-specific fields (conditionally required)
+    # DAMAGE
+    damage_amount: Amount of damage dealt
+    damage_type: Type of damage (slashing, fire, etc.)
+
+    # HEALING
+    healing_amount: Amount of HP restored
+
+    # MOVEMENT
+    new_location: New venue/stage name
+
+    # STATUS_EFFECT
+    status_effect: Status effect applied (poisoned, stunned, etc.
+    duration: Duration in turns
+
+    # ITEM_CHANGE
+    item_gained: Item added to inventory
+    item_lost: Item removed from inventory
+
+    # NPC_STATE_CHANGE
+    npc_state_change: Changes to NPC state (e.g., attitude, intentions)
+
   agent: consequence_agent

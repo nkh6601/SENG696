@@ -102,16 +102,38 @@ class InterfaceAgentV2:
         sg.theme('DarkBlue3')
 
         # Left Column - Player Character Information
-        pc_column = [
-            [sg.Text("Player Character", font=("Helvetica", 12, "bold"))],
-            [sg.Frame("Character Info", [
-                [sg.Text("Name: Loading...", key="-PC-NAME-", size=(25, 1))],
-                [sg.Text("HP: --/--", key="-PC-HP-", size=(25, 1))],
-                [sg.HorizontalSeparator()],
-                [sg.Text("Stage: Loading...", key="-PC-STAGE-", size=(25, 2))],
-                [sg.Text("Location: Loading...", key="-PC-VENUE-", size=(25, 2))],
-            ])],
-        ]
+        pc_column = pc_column = [[ sg.TabGroup([[  # <-- outer list = layout (list of rows)
+    sg.Tab('Player Character', [[ sg.Frame("Character Info", [
+        [sg.Text("Name: Loading...", key="-PC-NAME-", size=(25, 1))],
+        [sg.Text("HP: --/--", key="-PC-HP-", size=(25, 1))],
+        [sg.Text("Class: Loading...", key="-PC-Class-", size=(25, 1))],
+        [sg.Text("Level: --/--", key="-PC-Level-", size=(25, 1))],
+        [sg.HorizontalSeparator()],
+        [sg.Text("Stage: Loading...", key="-PC-STAGE-", size=(25, 2))],
+        [sg.Text("Location: Loading...", key="-PC-VENUE-", size=(25, 2))],
+    ]) ]]),
+
+    sg.Tab('Party Member 1', [[ sg.Frame("Character Info", [
+        [sg.Text("Name: Loading...", key="-PC1-NAME-", size=(25, 1))],
+        [sg.Text("HP: --/--", key="-PC1-HP-", size=(25, 1))],
+        [sg.Text("Class: Loading...", key="-PC1-Class-", size=(25, 1))],
+        [sg.Text("Level: --/--", key="-PC1-Level-", size=(25, 1))],
+        [sg.HorizontalSeparator()],
+        [sg.Text("Stage: Loading...", key="-PC1-STAGE-", size=(25, 2))],
+        [sg.Text("Location: Loading...", key="-PC1-VENUE-", size=(25, 2))],
+    ]) ]]),
+
+    sg.Tab('Party Member 2', [[ sg.Frame("Character Info", [
+        [sg.Text("Name: Loading...", key="-PC2-NAME-", size=(25, 1))],
+        [sg.Text("HP: --/--", key="-PC2-HP-", size=(25, 1))],
+        [sg.Text("Class: Loading...", key="-PC2-Class-", size=(25, 1))],
+        [sg.Text("Level: --/--", key="-PC2-Level-", size=(25, 1))],
+        [sg.HorizontalSeparator()],
+        [sg.Text("Stage: Loading...", key="-PC2-STAGE-", size=(25, 2))],
+        [sg.Text("Location: Loading...", key="-PC2-VENUE-", size=(25, 2))],
+    ]) ]]),
+
+]], key='-TABGROUP-') ]]  # <-- close the row list and outer layout list
 
         # Center Column - Chat and Input
         center_column = [
@@ -127,13 +149,13 @@ class InterfaceAgentV2:
                     background_color="#1E1E1E",
                     text_color="#FFFFFF"
                 )]
-            ])],
+            ],   size=(500, 500))],
             # Difficulty Check Panel (initially hidden)
             [sg.Frame("Difficulty Check", [
-                [sg.Text("", key="-DC-TEXT-", size=(50, 2))],
+                [sg.Text("", key="-DC-TEXT-", size=(40, 2))],
                 [
                     sg.Button("Roll d20", key="-ROLL-", visible=False),
-                    sg.Text("", key="-ROLL-RESULT-", size=(20, 1), font=("Helvetica", 12, "bold")),
+                    sg.Text("", key="-ROLL-RESULT-", size=(40, 1), font=("Helvetica", 12, "bold")),
                     sg.Button("Cancel", key="-CANCEL-", visible=False)
                 ]
             ], key="-CHECK-FRAME-", visible=False)],
@@ -149,6 +171,7 @@ class InterfaceAgentV2:
                 ]
             ])],
         ]
+        
 
         # Right Column - NPC Information
         npc_column = [
@@ -170,13 +193,14 @@ class InterfaceAgentV2:
         layout = [
             [sg.Text("D&D Multi-Agent System (v2)", font=("Helvetica", 16, "bold"), justification='center', expand_x=True)],
             [
-                sg.Column(pc_column, vertical_alignment='top'),
+                sg.Column(pc_column, vertical_alignment='top',   size=(600, 700)),
                 sg.VerticalSeparator(),
-                sg.Column(center_column, vertical_alignment='top'),
+                sg.Column(center_column, vertical_alignment='top',   size=(600, 700)),
                 sg.VerticalSeparator(),
-                sg.Column(npc_column, vertical_alignment='top')
+                sg.Column(npc_column, vertical_alignment='top',   size=(600, 700))
             ],
-            [sg.Text("Initializing...", key="-STATUS-", size=(100, 1), relief=sg.RELIEF_SUNKEN)]
+            [sg.Text("Initializing...", key="-STATUS-", size=(100, 1), relief=sg.RELIEF_SUNKEN)],
+            [sg.Text("Initializing...", key="-PHRASE-", size=(100, 1), relief=sg.RELIEF_SUNKEN)]
         ]
 
         window = sg.Window(
@@ -276,10 +300,15 @@ class InterfaceAgentV2:
 
             elif event == "-CANCEL-":
                 self._handle_cancel()
-
+            
+            
+            self.window["-PHRASE-"].update(self.host_manager.blackboard.read_single("workflow.current_step"))
+            
             # Process messages from HostManager
             self._process_gui_queue()
-
+            self._update_character_display()
+            self._update_npc_display()
+        
             # Check shutdown
             if self.shutdown_event.is_set():
                 break
@@ -308,7 +337,7 @@ class InterfaceAgentV2:
         self.state.flow_running = True
 
         # Add prompt to conversation
-        self._append_chat(f"[YOU] {prompt_text}\n")
+        self._append_chat(f"\n\n[YOU] {prompt_text}\n")
 
         # Send to HostManager
         self.host_manager.handle_user_prompt(prompt_text)
@@ -325,7 +354,7 @@ class InterfaceAgentV2:
         roll = randint(1, 20)
 
         # Display result
-        dc = self.state.current_difficulty or 10
+        dc = self.state.current_difficulty
         success = roll >= dc
         result_text = f"Rolled: {roll} vs DC {dc} - {'SUCCESS!' if success else 'FAILED'}"
         self.window["-ROLL-RESULT-"].update(result_text)
@@ -384,13 +413,16 @@ class InterfaceAgentV2:
         """
         msg_type = msg.type
         msg_data = msg.data or {}
-
+        
+        self._update_character_display()
+        self._update_npc_display()
+        
         print(f"[InterfaceAgentV2] Received: {msg_type}")
 
         if msg_type == MessageType.VALIDATION_ERROR:
             # Invalid prompt
             validation_msg = msg_data.get("message", "Invalid action")
-            self._append_chat(f"[SYSTEM] {validation_msg}\n")
+            self._append_chat(f"\n\n[SYSTEM] {validation_msg}\n")
 
             # Re-enable input
             self._reset_input_state()
@@ -398,7 +430,7 @@ class InterfaceAgentV2:
         elif msg_type == MessageType.ACTION_INFEASIBLE:
             # Action not feasible
             infeasibility_msg = msg_data.get("message", "Action not feasible")
-            self._append_chat(f"[SYSTEM] {infeasibility_msg}\n")
+            self._append_chat(f"\n\n[SYSTEM] {infeasibility_msg}\n")
 
             # Re-enable input
             self._reset_input_state()
@@ -429,7 +461,7 @@ class InterfaceAgentV2:
             # Display MC narrative
             for speaker, narrative in narratives.items():
                 if narrative:
-                    self._append_chat(f"[NARRATOR - {speaker}]\n{narrative}\n")
+                    self._append_chat(f"\n\n[NARRATOR - {speaker}]\n\n\n{narrative}\n")
 
             # Update game state from HostManager
             context = self.host_manager.get_game_context_summary()
@@ -438,8 +470,6 @@ class InterfaceAgentV2:
             self.state.current_venue = context.get("current_venue", self.state.current_venue)
 
             # Update displays
-            self._update_character_display()
-            self._update_npc_display()
 
             # Hide check panel and re-enable input
             self.window["-CHECK-FRAME-"].update(visible=False)
@@ -474,19 +504,67 @@ class InterfaceAgentV2:
 
     def _update_character_display(self):
         """Update character info display."""
-        self.window["-PC-NAME-"].update(f"Name: {self.state.player_name}")
-        self.window["-PC-HP-"].update(f"HP: {self.state.player_hp}/{self.state.player_max_hp}")
-        self.window["-PC-STAGE-"].update(f"Stage: {self.state.current_stage}")
-        self.window["-PC-VENUE-"].update(f"Location: {self.state.current_venue}")
+        if not self.host_manager:
+            return
+
+        bb = self.host_manager.blackboard
+        mc_name = bb.read_single("game_context.main_character_name")
+        stage_name = bb.read_single("game_context.current_stage_name")
+        venue_name = bb.read_single("game_context.current_venue_name")
+
+        # Get main character data
+        mc_data = bb.get_character_data(mc_name) or {}
+
+        # Update main character display
+        # Character.to_dict() uses 'hp' and 'max_hp' fields
+        mc_hp = mc_data.get("hp", 0)
+        mc_max_hp = mc_data.get("max_hp", 0)
+
+        self.window["-PC-NAME-"].update(f"Name: {mc_name}")
+        self.window["-PC-HP-"].update(f"HP: {mc_hp}/{mc_max_hp}")
+        self.window["-PC-Class-"].update(f"Class: {mc_data.get('character_class', 'Unknown')}")
+        self.window["-PC-Level-"].update(f"Level: {mc_data.get('level', 1)}")
+        self.window["-PC-STAGE-"].update(f"Stage: {stage_name}")
+        self.window["-PC-VENUE-"].update(f"Location: {venue_name}")
+
+        # Update companion displays
+        companion_names = bb.read_single("game_context.companion_names") or ["Kael Windrider", "Thora Mossborn"]
+        all_characters = bb.read_single("game_context.all_characters") or {}
+
+        for idx, companion_name in enumerate(companion_names):
+            if idx >= 2:  # We only have 2 companion slots
+                break
+
+            companion_data = all_characters.get(companion_name, {})
+            tab_idx = idx + 1  # PC1, PC2
+
+            # Character.to_dict() uses 'hp' and 'max_hp' fields
+            companion_hp = companion_data.get("hp", 0)
+            companion_max_hp = companion_data.get("max_hp", 0)
+
+            self.window[f"-PC{tab_idx}-NAME-"].update(f"Name: {companion_name}")
+            self.window[f"-PC{tab_idx}-HP-"].update(f"HP: {companion_hp}/{companion_max_hp}")
+            self.window[f"-PC{tab_idx}-Class-"].update(f"Class: {companion_data.get('character_class', 'Unknown')}")
+            self.window[f"-PC{tab_idx}-Level-"].update(f"Level: {companion_data.get('level', 1)}")
+            self.window[f"-PC{tab_idx}-STAGE-"].update(f"Stage: {stage_name}")
+            self.window[f"-PC{tab_idx}-VENUE-"].update(f"Location: {venue_name}")
+            
+            
 
     def _update_npc_display(self):
         """Update NPC status display from blackboard."""
         if not self.host_manager:
             return
 
-        # Get active NPCs from blackboard
+        # Get active NPCs from venue data
         bb = self.host_manager.blackboard
-        active_npc_names = bb.read_single("current_turn.active_npc_names") or []
+        venue_data = bb.get_current_venue_data() or {}
+        npc_names_in_venue = venue_data.get("NPCs", [])
+
+        # Try to get active NPC names from current turn, otherwise use all NPCs in venue
+        active_npc_names = bb.read_single("current_turn.active_npc_names")
+        if not active_npc_names:
+            active_npc_names = npc_names_in_venue
 
         if not active_npc_names:
             self.window["-NPC-STATUS-"].update("No NPCs nearby")
@@ -495,11 +573,18 @@ class InterfaceAgentV2:
         npc_text = ""
         for npc_name in active_npc_names:
             npc_data = bb.get_npc_data(npc_name)
+            if not npc_data:
+                # Try companion list
+                npc_data = bb.get_character_data(npc_name)
+
             if npc_data:
-                hp = npc_data.get("current_hit_points", npc_data.get("hit_points", "?"))
-                max_hp = npc_data.get("hit_points", "?")
+                # Character.to_dict() uses 'hp' and 'max_hp' fields
+                # But NPC data from campaign might use 'hit_points'
+                hp = npc_data.get("hp", npc_data.get("current_hit_points", npc_data.get("hit_points", "?")))
+                max_hp = npc_data.get("max_hp", npc_data.get("hit_points", "?"))
+                npc_type = npc_data.get("character_class", npc_data.get("type", "NPC"))
                 npc_text += f"{'=' * 23}\n"
-                npc_text += f"{npc_name}\n"
+                npc_text += f"{npc_name} ({npc_type})\n"
                 npc_text += f"HP: {hp}/{max_hp}\n"
                 npc_text += "\n"
 

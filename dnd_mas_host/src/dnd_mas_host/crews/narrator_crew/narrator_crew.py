@@ -208,19 +208,15 @@ class NarratorFlow(Flow[NarratorState]):
         print(f"[DEBUG] NarratorFlow.validate_prompt_step() called with prompt='...'")
         
         bb = self.bb
-        print(bb)
         state_text = bb.praseState()
 
-        print(state_text)
         # Load agent and task from YAML with specific tools
         agent = self._load_agent_config("prompt_validator", self.tools["prompt_validator"])
         
-        print(state_text)
         task = self._load_task_config("validate_prompt", agent, ValidationOutput)
         
         
         
-        print(state_text)
         # Execute task with enriched context objects
         result = self._execute_task_sync(task, {
             "state_text": str(state_text)
@@ -334,9 +330,7 @@ class NarratorFlow(Flow[NarratorState]):
         self.state.state_updates = result.state_updates
 
         bb.write({
-            "output.final_output": {mc_name: result.narrative},
-            "workflow.current_step": WorkflowStep.STEP_9_DISPLAY_OUTPUT,
-            "workflow.flow_complete": True            
+            "output.final_output": {mc_name: result.narrative}       
         })
         return self.state
     
@@ -346,19 +340,32 @@ class NarratorFlow(Flow[NarratorState]):
         Generate narratives for all NPC reactions in a single batch.
         This method is called directly from HostFlow (not part of the flow routing).
         """
-        if not self.state.npc_reactions:
-            self.state.npc_narratives = ""
+        
+        bb = self.bb
+        
+        state_text = bb.praseState()
+        
+        current_turn = bb.read_single("current_turn")
+        
+        if not current_turn.reactions_consequence_list:
+            bb.write({
+            "workflow.current_step": WorkflowStep.STEP_9_DISPLAY_OUTPUT,
+            "workflow.flow_complete": True            
+            })
+
+            self.host_manager.send_message(create_message(
+                to="Interface",
+                msg_type=MessageType.DISPLAY_NARRATIVE,
+                data={"narratives": bb.read_single("output.final_output")},
+                from_agent="Narrator"
+            ))
             return self.state
 
         # Load agent and task from YAML with specific tools
         agent = self._load_agent_config("npc_narrative_generator", self.tools["npc_narrative_generator"])
         task = self._load_task_config("generate_npc_narratives", agent, str)
 
-        bb = self.bb
         
-        state_text = bb.praseState()
-        
-        current_turn = bb.read_single("current_turn")
 
         # Build enriched NPC context from npc_reactions
         npc_context = []

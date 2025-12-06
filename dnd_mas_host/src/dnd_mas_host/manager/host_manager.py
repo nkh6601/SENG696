@@ -123,17 +123,26 @@ class HostManager:
             # Load companions
             companions = []
             companion_names = []
-            companion_docs = db["PCs"].find({"character_type": "companion"})
+            companion_docs = db["PCs"].find({"character_type": "party_member"})
+            companion_count = db["PCs"].count_documents({"character_type": "party_member"})
+            print(f"[HostManager] Found {companion_count} companions in database")
+
             for companion_doc in companion_docs:
+                print(f"[HostManager]   - Loading companion doc: {companion_doc.get('name', 'Unknown')}")
                 companion = Character.from_pc_document(companion_doc)
                 companions.append(companion)
                 companion_names.append(companion.name)
-                print(f"[HostManager]   - Companion: {companion.name}")
+                print(f"[HostManager]   - Companion loaded: {companion.name} (HP: {companion.hp}/{companion.max_hp})")
 
             # Build all_characters dict
             all_characters = {main_character.name: main_character.to_dict()}
             for companion in companions:
                 all_characters[companion.name] = companion.to_dict()
+
+            print(f"[HostManager] Built all_characters dict with {len(all_characters)} characters:")
+            for char_name in all_characters.keys():
+                char_data = all_characters[char_name]
+                print(f"[HostManager]   - {char_name}: HP={char_data.get('hp')}/{char_data.get('max_hp')}, Class={char_data.get('character_class')}")
 
             # Create GameContext
             self._game_context = GameContext(
@@ -290,169 +299,6 @@ class HostManager:
         result = self._execute_flow_with_retry(self.narrator_flow, inputs, "Narrator")
 
 
-
-        """
-    def _execute_narrator_validation(self):
-        # Read context from blackboard
-        bb = self.blackboard
-        prompt_text = bb.read_single("current_turn.prompt_text")
-        venue_name = bb.read_single("game_context.current_venue_name")
-        stage_name = bb.read_single("game_context.current_stage_name")
-        mc_name = bb.read_single("game_context.main_character_name")
-
-        # Get venue and stage data
-        venue_data = bb.get_current_venue_data() or {}
-        stage_data = bb.read_single("game_context.all_stages").get(stage_name, {})
-        mc_data = bb.get_character_data(mc_name) or {}
-
-        # Get active NPCs in venue
-        active_npcs = []
-        npc_names = venue_data.get("NPCs", [])
-        for npc_name in npc_names:
-            npc_data = bb.get_npc_data(npc_name)
-            if npc_data:
-                active_npcs.append(npc_data)
-
-        # Update workflow step
-        bb.write({"workflow.current_step": WorkflowStep.STEP_2_VALIDATE_PROMPT})
-
-        # Kick off NarratorFlow (validation phase)
-        inputs = {
-            "campaign": bb.read_single("game_context.campaign_name"),
-            "player": mc_name,
-            "prompt": prompt_text,
-            "current_venue": venue_name,
-            "current_venue_obj": venue_data,
-            "current_stage_obj": stage_data,
-            "active_npcs": active_npcs,
-            "player_character": mc_data,
-            "action": None,  # Triggers validation phase
-            "effect": None,
-            "reactions": []
-        }
-
-        result = self._execute_flow_with_retry(self.narrator_flow, inputs, "Narrator")
-        if result is None:
-            return
-
-        # Process results
-        state = result.state
-
-        if not state.prompt_valid:
-            # Validation failed - send error to Interface
-            bb.write({
-                "current_turn.prompt_valid": False,
-                "current_turn.validation_message": state.validation_message
-            })
-            self.send_message(create_message(
-                to="Interface",
-                msg_type=MessageType.VALIDATION_ERROR,
-                data={"message": state.validation_message},
-                from_agent="Narrator"
-            ))
-        else:
-            # Validation passed - extract action and send to Judge
-            action_data = state.action_extracted
-            bb.write({
-                "current_turn.prompt_valid": True,
-                "current_turn.action_extracted": Action(
-                    action_type=ActionType(action_data.get("action_type", "other")),
-                    actor_name=mc_name,
-                    target=action_data.get("target"),
-                    method=action_data.get("method", ""),
-                    intent=action_data.get("intent", "")
-                )
-            })
-            self.send_message(create_message(
-                to="Judge",
-                msg_type=MessageType.CHECK_FEASIBILITY,
-                from_agent="Narrator"
-            ))
-
-
-        
-    def _execute_narrator_narrative(self):
-        bb = self.blackboard
-        mc_name = bb.read_single("game_context.main_character_name")
-
-        # Read all necessary context
-        action = bb.read_single("current_turn.action_extracted")
-        mc_consequence = bb.read_single("current_turn.mc_consequence")
-        reactions_list = bb.read_single("current_turn.reactions_list")
-        reactions_consequence_list = bb.read_single("current_turn.reactions_consequence_list")
-
-        # Get venue and stage data
-        venue_name = bb.read_single("game_context.current_venue_name")
-        stage_name = bb.read_single("game_context.current_stage_name")
-        venue_data = bb.get_current_venue_data() or {}
-        stage_data = bb.read_single("game_context.all_stages").get(stage_name, {})
-        mc_data = bb.get_character_data(mc_name) or {}
-
-        # Update workflow step
-        bb.write({"workflow.current_step": WorkflowStep.STEP_8_GENERATE_NARRATIVE})
-
-        # Build effect string from consequences
-        effect_str = self._consequences_to_effect_string(mc_consequence)
-
-        # Build reactions list for narrator
-        reactions = []
-        for npc_name, npc_action in (reactions_list or {}).items():
-            npc_data = bb.get_npc_data(npc_name) or {}
-            npc_consequences = (reactions_consequence_list or {}).get(npc_name, [])
-            reactions.append({
-                "npc_name": npc_name,
-                "personality": npc_data.get("personality", ""),
-                "description": npc_data.get("description", ""),
-                "action": npc_action.model_dump() if hasattr(npc_action, 'model_dump') else npc_action,
-                "consequence": self._consequences_to_effect_string(npc_consequences)
-            })
-
-        # Kick off NarratorFlow (narrative phase)
-        inputs = {
-            "campaign": bb.read_single("game_context.campaign_name"),
-            "player": mc_name,
-            "prompt": bb.read_single("current_turn.prompt_text"),
-            "current_venue": venue_name,
-            "current_venue_obj": venue_data,
-            "current_stage_obj": stage_data,
-            "active_npcs": [],
-            "player_character": mc_data,
-            "action": action.model_dump() if hasattr(action, 'model_dump') else action,
-            "effect": effect_str,
-            "reactions": reactions
-        }
-
-        result = self._execute_flow_with_retry(self.narrator_flow, inputs, "Narrator")
-        if result is None:
-            return
-
-        # Store narrative in blackboard
-        state = result.state
-        final_output = {mc_name: state.narrative}
-
-        # Generate NPC narratives if there are reactions
-        if reactions:
-            self.narrator_flow.state.npc_reactions = reactions
-            self.narrator_flow.generate_npc_narratives_batch()
-            if self.narrator_flow.state.npc_narratives:
-                final_output["NPCs"] = self.narrator_flow.state.npc_narratives
-
-        bb.write({
-            "output.final_output": final_output,
-            "workflow.current_step": WorkflowStep.STEP_9_DISPLAY_OUTPUT,
-            "workflow.flow_complete": True
-        })
-
-        # Send to Interface for display
-        self.send_message(create_message(
-            to="Interface",
-            msg_type=MessageType.DISPLAY_NARRATIVE,
-            data={"narratives": final_output},
-            from_agent="Narrator"
-        ))
-
-        """
-
     # ========================================================================
     # Judge Flow Execution
     # ========================================================================
@@ -466,179 +312,20 @@ class HostManager:
         """
         print(f"[HostManager] Executing Judge for: {msg.type}")
 
-        try:
-            if msg.type == MessageType.CHECK_FEASIBILITY:
-                self._execute_judge_difficulty()
-            elif msg.type == MessageType.EVALUATE_CONSEQUENCE:
-                self._execute_judge_consequence()
-            elif msg.type == MessageType.EVALUATE_NPC_CONSEQUENCE:
-                self._execute_judge_npc_consequence(msg.data)
-            else:
-                print(f"[HostManager] Unknown Judge message type: {msg.type}")
-
-        except Exception as e:
-            print(f"[HostManager] Judge execution failed: {e}")
-            traceback.print_exc()
-            self._handle_agent_error("Judge", e)
-
-    def _execute_judge_difficulty(self):
-        """Execute Judge difficulty assessment phase."""
-        bb = self.blackboard
-        action = bb.read_single("current_turn.action_extracted")
-        mc_name = bb.read_single("game_context.main_character_name")
-
-        # Get context data
-        venue_data = bb.get_current_venue_data() or {}
-        mc_data = bb.get_character_data(mc_name) or {}
-
-        # Update workflow step
-        bb.write({"workflow.current_step": WorkflowStep.STEP_3_CHECK_DIFFICULTY})
-
-        # Kick off JudgeFlow (difficulty assessment phase: roll=0)
         inputs = {
-            "campaign": bb.read_single("game_context.campaign_name"),
-            "player": mc_name,
-            "action": action.model_dump() if hasattr(action, 'model_dump') else action,
-            "roll": 0,  # Triggers difficulty assessment phase
-            "current_venue_obj": venue_data,
-            "player_character": mc_data,
-            "active_npcs": []
+            "msg": msg
         }
 
         result = self._execute_flow_with_retry(self.judge_flow, inputs, "Judge")
-        if result is None:
-            return
 
-        state = result.state
+        # For NPC consequence evaluation, return the result for caller to handle
+        if msg.type == MessageType.EVALUATE_NPC_CONSEQUENCE and result:
+            return self._parse_effect_to_consequences(
+                result.state.effect,
+                msg.data.get("action", {}).get("target") if msg.data else None
+            )
 
-        # Check feasibility
-        if state.feasibility_result and not state.feasibility_result.get("is_valid"):
-            # Action infeasible
-            bb.write({"current_turn.skip_difficulty_check": True})
-            self.send_message(create_message(
-                to="Interface",
-                msg_type=MessageType.ACTION_INFEASIBLE,
-                data={"message": state.feasibility_result.get("rejection_message", "Action not feasible")},
-                from_agent="Judge"
-            ))
-            return
-
-        # Update action with difficulty
-        if action:
-            action.difficulty = state.difficulty
-            bb.write({"current_turn.action_extracted": action})
-
-        # Check if skip difficulty check
-        if state.skip_difficulty_check or state.difficulty == -1 or state.difficulty >= 21:
-            bb.write({"current_turn.skip_difficulty_check": True})
-
-            if state.difficulty == -1:
-                # Auto-fail
-                bb.write({"current_turn.difficulty_check": 0})
-                self.send_message(create_message(
-                    to="Judge",
-                    msg_type=MessageType.EVALUATE_CONSEQUENCE,
-                    from_agent="Judge"
-                ))
-            else:
-                # Auto-success (DC 21+ is trivial)
-                bb.write({"current_turn.difficulty_check": 21})
-                self.send_message(create_message(
-                    to="Judge",
-                    msg_type=MessageType.EVALUATE_CONSEQUENCE,
-                    from_agent="Judge"
-                ))
-        else:
-            # Need user to roll
-            bb.write({"workflow.current_step": WorkflowStep.STEP_4_REQUEST_ROLL})
-            self.send_message(create_message(
-                to="Interface",
-                msg_type=MessageType.REQUEST_DIFFICULTY_CHECK,
-                data={
-                    "difficulty": state.difficulty,
-                    "reasoning": state.difficulty_reasoning
-                },
-                from_agent="Judge"
-            ))
-
-    def _execute_judge_consequence(self):
-        """Execute Judge consequence evaluation phase."""
-        bb = self.blackboard
-        action = bb.read_single("current_turn.action_extracted")
-        roll = bb.read_single("current_turn.difficulty_check")
-        mc_name = bb.read_single("game_context.main_character_name")
-
-        # Get context data
-        venue_data = bb.get_current_venue_data() or {}
-        mc_data = bb.get_character_data(mc_name) or {}
-
-        # Update workflow step
-        bb.write({"workflow.current_step": WorkflowStep.STEP_6_EVALUATE_CONSEQUENCE})
-
-        # Kick off JudgeFlow (consequence evaluation phase: roll > 0)
-        inputs = {
-            "campaign": bb.read_single("game_context.campaign_name"),
-            "player": mc_name,
-            "action": action.model_dump() if hasattr(action, 'model_dump') else action,
-            "roll": roll,  # Triggers consequence evaluation phase
-            "current_venue_obj": venue_data,
-            "player_character": mc_data,
-            "active_npcs": []
-        }
-
-        result = self._execute_flow_with_retry(self.judge_flow, inputs, "Judge")
-        if result is None:
-            return
-
-        state = result.state
-
-        # Convert effect string to Consequence list (simplified)
-        consequences = self._parse_effect_to_consequences(
-            state.effect,
-            action.target if action else None
-        )
-        bb.write({"current_turn.mc_consequence": consequences})
-
-        # Trigger NPC reactions
-        bb.write({"workflow.current_step": WorkflowStep.STEP_7_EVALUATE_REACTIONS})
-        self.send_message(create_message(
-            to="NPC",
-            msg_type=MessageType.EVALUATE_REACTIONS,
-            from_agent="Judge"
-        ))
-
-    def _execute_judge_npc_consequence(self, data: Dict[str, Any]):
-        """
-        Execute Judge consequence evaluation for an NPC action.
-
-        Args:
-            data: Dict containing npc_name, action, roll
-        """
-        npc_name = data.get("npc_name")
-        npc_action = data.get("action")
-        npc_roll = data.get("roll", 10)
-
-        bb = self.blackboard
-        venue_data = bb.get_current_venue_data() or {}
-        npc_data = bb.get_npc_data(npc_name) or {}
-
-        # Kick off JudgeFlow for NPC
-        inputs = {
-            "campaign": bb.read_single("game_context.campaign_name"),
-            "player": npc_name,
-            "action": npc_action,
-            "roll": npc_roll,
-            "current_venue_obj": venue_data,
-            "player_character": npc_data,
-            "active_npcs": []
-        }
-
-        result = self._execute_flow_with_retry(self.judge_flow, inputs, "Judge")
-        if result is None:
-            return []
-
-        state = result.state
-        return self._parse_effect_to_consequences(state.effect, npc_action.get("target"))
+        return None
 
     # ========================================================================
     # NPC Processing
@@ -732,15 +419,20 @@ class HostManager:
                     npc_roll = random.randint(1, 20)
                     print(f"[HostManager]   - {npc_name} rolls d20: {npc_roll}")
 
-                    # Evaluate NPC consequence
-                    npc_consequences = self._execute_judge_npc_consequence({
-                        "npc_name": npc_name,
-                        "action": reaction_action.model_dump(),
-                        "roll": npc_roll
-                    })
+                    # Evaluate NPC consequence via message
+                    npc_consequences = self._execute_judge(create_message(
+                        to="Judge",
+                        msg_type=MessageType.EVALUATE_NPC_CONSEQUENCE,
+                        data={
+                            "npc_name": npc_name,
+                            "action": reaction_action.model_dump(),
+                            "roll": npc_roll
+                        },
+                        from_agent="HostManager"
+                    ))
 
                     reactions_list[npc_name] = reaction_action
-                    reactions_consequence_list[npc_name] = npc_consequences
+                    reactions_consequence_list[npc_name] = npc_consequences if npc_consequences else []
                 else:
                     print(f"[HostManager]   - {npc_name} has no reaction")
 

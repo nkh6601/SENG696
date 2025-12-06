@@ -3,3 +3,15 @@ mongodb3/mongodb-complete-20251126_225752/mongod_data.tar.gz
 mongodb3/mongodb-complete-20251126_225752/mongot-image.tar
 mongodb3/mongodb-complete-20251126_225752/mongot_data.tar.gz
 mongodb3/mongodb-complete-20251126_225752/RESTORE.ps1
+mongodb3/mongodb-complete-20251205_232602/mongodb-complete-20251205_232602/sampledata.archive
+mongodb3/mongodb-complete-20251205_232602/mongodb-complete-20251205_232602/RESTORE.ps1
+mongodb3/mongodb-complete-20251205_232602/mongodb-complete-20251205_232602/pwfile
+mongodb3/mongodb-complete-20251205_232602/mongodb-complete-20251205_232602/mongot_data.tar.gz
+mongodb3/mongodb-complete-20251205_232602/mongodb-complete-20251205_232602/mongot.conf
+mongodb3/mongodb-complete-20251205_232602/mongodb-complete-20251205_232602/mongot-image.tar
+mongodb3/mongodb-complete-20251205_232602/mongodb-complete-20251205_232602/mongod_data.tar.gz
+mongodb3/mongodb-complete-20251205_232602/mongodb-complete-20251205_232602/mongod.conf
+mongodb3/mongodb-complete-20251205_232602/mongodb-complete-20251205_232602/mongod-image.tar
+mongodb3/mongodb-complete-20251205_232602/mongodb-complete-20251205_232602/init-mongo.sh
+mongodb3/mongodb-complete-20251205_232602/mongodb-complete-20251205_232602/Dockerfile.mongot
+mongodb3/mongodb-complete-20251205_232602/mongodb-complete-20251205_232602/docker-compose.yml

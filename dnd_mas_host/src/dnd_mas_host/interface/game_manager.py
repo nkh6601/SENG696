@@ -384,6 +384,8 @@ class GameManager:
                  "state": self.host_flow.state}
         ))
 
+        print(self.game_state.start_narrative)
+        
         # Send start narrative as first message
         self.from_flow_queue.put(create_message(
             MessageType.DISPLAY_NARRATIVE,

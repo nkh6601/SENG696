@@ -1,9 +1,6 @@
 validate_prompt:
   description: >
-    ONLY validate the player's prompt for conflicts, invalid actions, or ambiguities.
-    DO NOT extract actions or generate narratives - only check if the prompt is valid.
-
-    Review the following information to validate the player's prompt:
+    Validate the following player's prompt for conflicts, invalid actions, or ambiguities.
 
     {state_text}
 
@@ -13,11 +10,12 @@ validate_prompt:
     - Check if action is possible in current venue environment (current_venue_obj)
     - Detect conflicts with game state (e.g., targeting dead NPCs, using items not in inventory)
     - Flag ambiguous actions requiring clarification
-    - Maximum tool usage: 0 (all data provided in context)
 
     Determine:
     - Does the prompt conflict with current game state?
     - Does the prompt request an impossible action?
+    - Use the action in venue as a referenced. The player's action may be valid even it is not similar to those actions provided in venue.
+    - Player can only move to the connected venue. 
     - Is the prompt ambiguous or unclear to an extent largely affecting understanding the action?
     - Does the prompt align with campaign story and current venue?
 
@@ -33,20 +31,17 @@ validate_prompt:
 
 action_extract:
   description: >
-    ONLY extract and structure the action from the player's prompt.
-    DO NOT validate the prompt or generate narratives - only parse the action data.
-
-    Extract structured action data from the following validated prompt:
+    Extract and structure the action from the following validated player's prompt.
 
     {state_text}
 
     INSTRUCTIONS:
     - DO NOT use vector search tools - all context is provided above
     - Extract action details from prompt using provided context
-    - Use player_character inventory/spell slots to validate capability
+    - Use player_character inventory/spell slots to validate capability 
+    - Use the action in venue as a referenced. The player's action is valid if it is similar to one of the actions provided in venue.
     - Use active_npcs list to identify targets
     - Use current_venue_obj supported_actions to validate action type
-    - Maximum tool usage: 0 (all data provided in context)
 
     Extract the following components:
     - action_type: Type of action (e.g., attack, investigate, talk, move, cast_spell)
@@ -58,11 +53,9 @@ action_extract:
     Be objective and factual - don't add narrative flourish or interpretation.
     Include ALL relevant context needed for Judge and NPC agents to evaluate the action.
 
-    This is ONLY action extraction - if it's something related to validation or narrative,
-    state that it is NOT an action extraction matter.
   expected_output: >
     A JSON format action extraction result, which includes:
-    - action_type: Type of action
+    - action_type: Type of action, including "attack", "move", "cast_spell", "investigate", "persuade", "intimidate", "deceive", "stealth", "interact", and "other". 
     - target: Target of the action
     - method: Method or approach
     - intent: Player's intent
@@ -70,15 +63,12 @@ action_extract:
 
 narrative_task:
   description: >
-    ONLY generate engaging narratives based on action results and game events.
-    DO NOT validate prompts or extract actions - only create the story narrative.
-
-    Generate narrative based on the following action results:
-
-    {state_text}
-
+    Generate engaging narratives based on following action results and game events.
+    
     Action Taken: {action}
     Action Effect: {effect}
+
+    {state_text}
 
     INSTRUCTIONS:
     - Use MonsterVectorSearchTool ONLY for combat descriptions (enemy abilities)
@@ -86,8 +76,8 @@ narrative_task:
     - DO NOT search for venue, NPC, or stage info - provided in context
     - Use current_venue_obj for atmospheric descriptions
     - Use active_npcs for NPC personality/dialogue
-    - Use current_stage_obj for story context
-    - Maximum tool usage: 2 (Monster + Spell only if needed)
+    - Use current_stage_obj for story context 
+    - Only use vector search tools for maximum two times(Monster + Spell only if needed)
 
     Create a compelling 1-3 sentence narrative that:
     - Combines third-person descriptions with character dialogue where appropriate
@@ -102,8 +92,6 @@ narrative_task:
     - Player name for player character dialogue
     - NPC names for NPC dialogue
 
-    This is ONLY narrative generation - if it's something related to validation or action extraction,
-    state that it is NOT a narrative matter.
   expected_output: >
     A JSON format narrative data, which includes:
     - narrative: Generated narrative text
@@ -132,13 +120,13 @@ generate_npc_narratives:
     ]
 
     INSTRUCTIONS:
-    - Generate a cohesive narrative for ALL NPC reactions
+    - Generate a cohesive narrative for ALL NPC reactions   
     - Use MonsterVectorSearchTool ONLY for combat abilities
     - Use SpellVectorSearchTool ONLY for spell effects
     - DO NOT search for NPC info - provided in npc_reactions
     - Order reactions logically (e.g., faster NPCs first)
-    - Show personality through dialogue and actions
-    - Maximum tool usage: 2 (Monster + Spell only if needed)
+    - Show personality through dialogue and actions    - 
+    - Only use vector search tools for maximum two times (Monster + Spell only if needed)
 
     Create a flowing narrative that combines all NPC actions, showing their distinct
     personalities and tactical decisions. Use dialogue and environmental details to
