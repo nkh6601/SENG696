@@ -68,7 +68,11 @@ Running the docker desktop, and execute the restore.ps1 script. The script shoul
 ```powershell
 .\restore.ps1
 ```
+### Step 6: Adding API key to the .env file
 
+Go to .\SENG696\dnd_mas_host, and modify the openapi field to allow API call. Other models should work, but they have not been tested.
+
+OPENAI_API_KEY=xxxxxx
 
 ## License
 
